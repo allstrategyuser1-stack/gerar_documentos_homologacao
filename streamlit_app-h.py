@@ -79,10 +79,6 @@ with aba_classificacoes:
         )
         arquivo_saidas = st.file_uploader("Importar lista de classificações de Saída", type=["xlsx"])
 
-# --- Aba Gerar CSV ---
-with aba_gerar:
-    st.header("Gerar Arquivo CSV")
-    
     # Leitura das classificações importadas ou digitadas manualmente
     entradas_codigos, saidas_codigos = [], []
     
@@ -102,6 +98,11 @@ with aba_gerar:
     if not saidas_codigos:
         saidas_input = st.text_area("Lista de classificações de Saída (separadas por vírgula)", value="S001,S002,S003")
         saidas_codigos = [s.strip() for s in saidas_input.split(",") if s.strip()]
+
+# --- Aba Gerar CSV ---
+with aba_gerar:
+    st.header("Gerar Arquivo CSV")
+ 
     
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
 
