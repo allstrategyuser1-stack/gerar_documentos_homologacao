@@ -17,36 +17,42 @@ def gerar_template_xlsx(tipo):
             "nome": ["Exemplo de entrada", "Venda de produto"]
         })
         sheet_name = "classificacoes_entrada"
+
     elif tipo == "saida":
         df = pd.DataFrame({
             "codigo": ["S001", "S002"],
             "nome": ["Exemplo de saída", "Pagamento de fornecedor"]
         })
         sheet_name = "classificacoes_saida"
+
     elif tipo == "unidades":
         df = pd.DataFrame({
             "codigo": ["01", "02", "03"],
             "nome": ["Matriz", "Filial SP", "Filial RJ"]
         })
         sheet_name = "unidades"
+
     elif tipo == "tesouraria":
         df = pd.DataFrame({
             "codigo": ["T001", "T002"],
             "nome": ["Conta Banco 1", "Caixa Interno"]
         })
         sheet_name = "tesouraria"
+
     elif tipo == "centro_custo":
         df = pd.DataFrame({
             "codigo": ["CC01", "CC02"],
             "nome": ["Administrativo", "Operacional"]
         })
         sheet_name = "centro_custo"
+
     elif tipo == "tipos_doc":
         df = pd.DataFrame({
             "codigo": ["NF", "REC"],
             "nome": ["Nota Fiscal", "Recibo"]
         })
         sheet_name = "tipos_documento"
+
     else:
         df = pd.DataFrame()
 
@@ -111,7 +117,7 @@ with abas[1]:
         lista_unidades = df_unidades["codigo"].dropna().astype(str).tolist()
         st.success(f"{len(lista_unidades)} unidades importadas.")
     else:
-        unidades_input = st.text_area("Lista de unidades (separadas por vírgula)", value="01,02,03")
+        unidades_input = st.text_area("Lista de unidades (separadas por vírgula)", value="")
         lista_unidades = [u.strip() for u in unidades_input.split(",") if u.strip()]
 
 # ============================
@@ -154,10 +160,10 @@ with abas[2]:
         saidas_codigos = df_saidas["codigo"].dropna().astype(str).tolist()
 
     if not entradas_codigos:
-        entradas_input = st.text_area("Classificações de Entrada (separadas por vírgula)", value="E001,E002,E003")
+        entradas_input = st.text_area("Classificações de Entrada (separadas por vírgula)", value="")
         entradas_codigos = [e.strip() for e in entradas_input.split(",") if e.strip()]
     if not saidas_codigos:
-        saidas_input = st.text_area("Classificações de Saída (separadas por vírgula)", value="S001,S002,S003")
+        saidas_input = st.text_area("Classificações de Saída (separadas por vírgula)", value="")
         saidas_codigos = [s.strip() for s in saidas_input.split(",") if s.strip()]
 
 # ============================
@@ -182,7 +188,7 @@ with abas[3]:
         lista_tesouraria = df_tes["codigo"].dropna().astype(str).tolist()
         st.success(f"{len(lista_tesouraria)} contas de tesouraria importadas.")
     else:
-        tes_input = st.text_area("Contas de Tesouraria (separadas por vírgula)", value="T001,T002")
+        tes_input = st.text_area("Contas de Tesouraria (separadas por vírgula)", value="")
         lista_tesouraria = [t.strip() for t in tes_input.split(",") if t.strip()]
 
 # ============================
@@ -207,7 +213,7 @@ with abas[4]:
         lista_cc = df_cc["codigo"].dropna().astype(str).tolist()
         st.success(f"{len(lista_cc)} centros de custo importados.")
     else:
-        cc_input = st.text_area("Centros de Custo (separados por vírgula)", value="CC01,CC02")
+        cc_input = st.text_area("Centros de Custo (separados por vírgula)", value="")
         lista_cc = [c.strip() for c in cc_input.split(",") if c.strip()]
 
 # ============================
@@ -232,7 +238,7 @@ with abas[5]:
         lista_tipos = df_tipos["codigo"].dropna().astype(str).tolist()
         st.success(f"{len(lista_tipos)} tipos de documento importados.")
     else:
-        tipos_input = st.text_area("Tipos de Documento (separados por vírgula)", value="NF,REC")
+        tipos_input = st.text_area("Tipos de Documento (separados por vírgula)", value="")
         lista_tipos = [t.strip() for t in tipos_input.split(",") if t.strip()]
 
 # ============================
