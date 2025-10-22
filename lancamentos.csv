@@ -1,0 +1,113 @@
+﻿Documento,Natureza,classif_fin,Valor,DataVencimento,cod_unidade,cod_cli_for,prev_s_doc,susp,pend_aprov,doc_edit,Historico
+1,S,Internet,1428.25,15/10/2025,01,F27,N,N,N,N,Lançamento 1 internet
+2,E,Entrada 2,15.25,18/04/2025,02,C13,N,N,N,N,Lançamento 2 entrada 2
+3,E,Juros de aplicação,4460.49,09/10/2025,03,C28,N,N,N,N,Lançamento 3 juros de aplicação
+4,E,Juros de aplicação,179.58,23/12/2025,03,C1,N,N,N,N,Lançamento 4 juros de aplicação
+5,S,Parcela de empréstimo,1795.13,07/12/2025,02,F29,N,N,N,N,Lançamento 5 parcela de empréstimo
+6,E,Entrada 3,3459.13,30/05/2025,01,C31,N,N,N,N,Lançamento 6 entrada 3
+7,E,Juros de aplicação,3028.89,30/06/2025,03,C31,N,N,N,N,Lançamento 7 juros de aplicação
+8,S,Fornecedores,157.39,04/10/2025,02,F31,N,N,N,N,Lançamento 8 fornecedores
+9,S,Salário,1564.92,08/07/2025,02,F48,N,N,N,N,Lançamento 9 salário
+10,S,Parcela de financiamento,2792.78,20/05/2025,01,F7,N,N,N,N,Lançamento 10 parcela de financiamento
+11,E,Entrada 3,1532.76,20/02/2025,02,C25,N,N,N,N,Lançamento 11 entrada 3
+12,E,Entrada 2,4909.34,14/09/2025,02,C43,N,N,N,N,Lançamento 12 entrada 2
+13,E,Resgate,1146.92,19/03/2025,02,C999,N,N,N,N,Lançamento 13 resgate
+14,S,Aplicação de valor,1146.92,19/03/2025,02,F999,N,N,N,N,Contrapartida do lançamento 13
+14,E,Resgate,2467.63,09/03/2025,03,C999,N,N,N,N,Lançamento 14 resgate
+16,S,Aplicação de valor,2467.63,09/03/2025,03,F999,N,N,N,N,Contrapartida do lançamento 14
+15,E,Juros de aplicação,2037.34,23/01/2025,02,C39,N,N,N,N,Lançamento 15 juros de aplicação
+16,E,Resgate,1586.68,07/09/2025,01,C999,N,N,N,N,Lançamento 16 resgate
+19,S,Aplicação de valor,1586.68,07/09/2025,03,F999,N,N,N,N,Contrapartida do lançamento 16
+17,S,Manutenção predial,1040.01,13/12/2025,01,F25,N,N,N,N,Lançamento 17 manutenção predial
+18,E,Captação de empréstimos,2369.65,14/02/2025,02,C33,N,N,N,N,Lançamento 18 captação de empréstimos
+19,E,Entrada 3,1779.32,07/06/2025,01,C37,N,N,N,N,Lançamento 19 entrada 3
+20,E,Juros de aplicação,1871.99,24/01/2025,01,C21,N,N,N,N,Lançamento 20 juros de aplicação
+21,E,Entrada 3,2455.75,19/07/2025,02,C13,N,N,N,N,Lançamento 21 entrada 3
+22,E,Entrada 2,748.97,26/06/2025,03,C28,N,N,N,N,Lançamento 22 entrada 2
+23,S,Água,67.0,20/06/2025,03,F17,N,N,N,N,Lançamento 23 água
+24,E,Captação de empréstimos,3882.22,26/07/2025,02,C39,N,N,N,N,Lançamento 24 captação de empréstimos
+25,E,Entrada 1,2745.05,23/10/2025,02,C23,N,N,N,N,Lançamento 25 entrada 1
+26,S,Benefícios,2918.44,30/10/2025,03,F45,N,N,N,N,Lançamento 26 benefícios
+27,S,Luz,4638.12,01/04/2025,01,F1,N,N,N,N,Lançamento 27 luz
+28,S,Aplicação de valor,395.47,17/06/2025,03,F26,N,N,N,N,Lançamento 28 aplicação de valor
+29,S,Internet,438.09,30/11/2025,01,F13,N,N,N,N,Lançamento 29 internet
+30,E,Juros de aplicação,2461.55,01/06/2025,03,C27,N,N,N,N,Lançamento 30 juros de aplicação
+31,E,Entrada 1,3379.58,26/07/2025,02,C34,N,N,N,N,Lançamento 31 entrada 1
+32,E,Entrada 1,3057.81,22/12/2025,01,C47,N,N,N,N,Lançamento 32 entrada 1
+33,E,Juros de aplicação,4842.82,07/03/2025,02,C25,N,N,N,N,Lançamento 33 juros de aplicação
+34,E,Juros de aplicação,3541.51,30/12/2025,01,C42,N,N,N,N,Lançamento 34 juros de aplicação
+35,S,Parcela de empréstimo,2721.99,10/09/2025,02,F8,N,N,N,N,Lançamento 35 parcela de empréstimo
+36,E,Juros de aplicação,3936.41,08/05/2025,02,C35,N,N,N,N,Lançamento 36 juros de aplicação
+37,E,Entrada 3,4721.06,03/11/2025,03,C20,N,N,N,N,Lançamento 37 entrada 3
+38,E,Juros de aplicação,4585.03,28/09/2025,03,C17,N,N,N,N,Lançamento 38 juros de aplicação
+39,S,Impostos,681.13,29/12/2025,03,F31,N,N,N,N,Lançamento 39 impostos
+40,E,Entrada 2,3485.65,15/02/2025,03,C31,N,N,N,N,Lançamento 40 entrada 2
+41,E,Entrada 2,2279.61,25/01/2025,03,C38,N,N,N,N,Lançamento 41 entrada 2
+42,E,Resgate,287.09,06/08/2025,01,C999,N,N,N,N,Lançamento 42 resgate
+46,S,Aplicação de valor,287.09,06/08/2025,01,F999,N,N,N,N,Contrapartida do lançamento 42
+43,E,Resgate,3259.43,09/11/2025,01,C999,N,N,N,N,Lançamento 43 resgate
+48,S,Aplicação de valor,3259.43,09/11/2025,02,F999,N,N,N,N,Contrapartida do lançamento 43
+44,E,Juros de aplicação,3419.96,14/02/2025,03,C20,N,N,N,N,Lançamento 44 juros de aplicação
+45,S,Fornecedores,4400.27,12/10/2025,01,F46,N,N,N,N,Lançamento 45 fornecedores
+46,S,Parcela de empréstimo,3871.42,21/09/2025,02,F47,N,N,N,N,Lançamento 46 parcela de empréstimo
+47,S,Internet,2182.79,16/12/2025,03,F23,N,N,N,N,Lançamento 47 internet
+48,S,Encargos sobre folha,3980.21,23/11/2025,02,F24,N,N,N,N,Lançamento 48 encargos sobre folha
+49,E,Entrada 2,1009.05,26/06/2025,03,C35,N,N,N,N,Lançamento 49 entrada 2
+50,E,Entrada 3,1610.8,23/09/2025,02,C29,N,N,N,N,Lançamento 50 entrada 3
+51,E,Captação de empréstimos,1478.29,15/02/2025,02,C30,N,N,N,N,Lançamento 51 captação de empréstimos
+52,E,Resgate,4308.94,16/09/2025,01,C999,N,N,N,N,Lançamento 52 resgate
+58,S,Aplicação de valor,4308.94,16/09/2025,03,F999,N,N,N,N,Contrapartida do lançamento 52
+53,S,Impostos,4736.86,27/12/2025,03,F22,N,N,N,N,Lançamento 53 impostos
+54,S,Aplicação de valor,4403.55,28/02/2025,03,F31,N,N,N,N,Lançamento 54 aplicação de valor
+55,E,Captação de empréstimos,305.67,07/02/2025,01,C23,N,N,N,N,Lançamento 55 captação de empréstimos
+56,S,Parcela de empréstimo,69.31,12/09/2025,03,F20,N,N,N,N,Lançamento 56 parcela de empréstimo
+57,E,Entrada 1,3496.07,05/01/2025,02,C44,N,N,N,N,Lançamento 57 entrada 1
+58,S,Benefícios,2152.43,16/01/2025,02,F16,N,N,N,N,Lançamento 58 benefícios
+59,S,Juros de empréstimo,4838.05,07/11/2025,01,F33,N,N,N,N,Lançamento 59 juros de empréstimo
+60,E,Entrada 3,2276.29,15/12/2025,01,C43,N,N,N,N,Lançamento 60 entrada 3
+61,S,Parcela de financiamento,755.48,17/08/2025,03,F43,N,N,N,N,Lançamento 61 parcela de financiamento
+62,S,Parcela de empréstimo,1469.82,13/08/2025,02,F9,N,N,N,N,Lançamento 62 parcela de empréstimo
+63,S,Salário,1574.37,14/02/2025,03,F37,N,N,N,N,Lançamento 63 salário
+64,E,Juros de aplicação,4666.24,15/05/2025,01,C18,N,N,N,N,Lançamento 64 juros de aplicação
+65,S,Benefícios,652.96,26/12/2025,02,F44,N,N,N,N,Lançamento 65 benefícios
+66,S,Salário,3165.49,15/01/2025,01,F43,N,N,N,N,Lançamento 66 salário
+67,S,Parcela de financiamento,3860.3,02/05/2025,01,F44,N,N,N,N,Lançamento 67 parcela de financiamento
+68,S,Parcela de empréstimo,860.73,03/10/2025,01,F13,N,N,N,N,Lançamento 68 parcela de empréstimo
+69,E,Resgate,1325.88,20/03/2025,02,C999,N,N,N,N,Lançamento 69 resgate
+76,S,Aplicação de valor,1325.88,20/03/2025,01,F999,N,N,N,N,Contrapartida do lançamento 69
+70,E,Captação de empréstimos,4839.93,27/09/2025,03,C7,N,N,N,N,Lançamento 70 captação de empréstimos
+71,S,Parcela de financiamento,4314.16,25/02/2025,01,F35,N,N,N,N,Lançamento 71 parcela de financiamento
+72,E,Resgate,2960.44,16/10/2025,02,C999,N,N,N,N,Lançamento 72 resgate
+80,S,Aplicação de valor,2960.44,16/10/2025,03,F999,N,N,N,N,Contrapartida do lançamento 72
+73,E,Juros de aplicação,2017.52,06/02/2025,03,C2,N,N,N,N,Lançamento 73 juros de aplicação
+74,S,Manutenção predial,4838.05,15/10/2025,02,F7,N,N,N,N,Lançamento 74 manutenção predial
+75,E,Resgate,2709.24,25/04/2025,03,C999,N,N,N,N,Lançamento 75 resgate
+84,S,Aplicação de valor,2709.24,25/04/2025,03,F999,N,N,N,N,Contrapartida do lançamento 75
+76,E,Juros de aplicação,1879.13,22/07/2025,03,C20,N,N,N,N,Lançamento 76 juros de aplicação
+77,E,Entrada 3,287.8,19/04/2025,03,C46,N,N,N,N,Lançamento 77 entrada 3
+78,S,Fornecedores,692.07,23/03/2025,01,F14,N,N,N,N,Lançamento 78 fornecedores
+79,E,Entrada 3,1699.59,16/06/2025,03,C9,N,N,N,N,Lançamento 79 entrada 3
+80,E,Juros de aplicação,1736.33,13/03/2025,02,C41,N,N,N,N,Lançamento 80 juros de aplicação
+81,E,Captação de empréstimos,3895.21,05/06/2025,02,C42,N,N,N,N,Lançamento 81 captação de empréstimos
+82,E,Entrada 1,3299.14,03/07/2025,03,C43,N,N,N,N,Lançamento 82 entrada 1
+83,E,Resgate,3092.69,05/02/2025,02,C999,N,N,N,N,Lançamento 83 resgate
+93,S,Aplicação de valor,3092.69,05/02/2025,03,F999,N,N,N,N,Contrapartida do lançamento 83
+84,S,Benefícios,1405.41,15/10/2025,03,F12,N,N,N,N,Lançamento 84 benefícios
+85,S,Fornecedores,4389.72,11/01/2025,02,F11,N,N,N,N,Lançamento 85 fornecedores
+86,S,Parcela de empréstimo,4393.3,17/10/2025,03,F11,N,N,N,N,Lançamento 86 parcela de empréstimo
+87,E,Resgate,214.93,15/06/2025,01,C999,N,N,N,N,Lançamento 87 resgate
+98,S,Aplicação de valor,214.93,15/06/2025,03,F999,N,N,N,N,Contrapartida do lançamento 87
+88,E,Entrada 1,545.65,28/05/2025,01,C48,N,N,N,N,Lançamento 88 entrada 1
+89,E,Entrada 1,3705.62,20/06/2025,02,C27,N,N,N,N,Lançamento 89 entrada 1
+90,S,Fornecedores,2322.2,12/10/2025,03,F44,N,N,N,N,Lançamento 90 fornecedores
+91,E,Entrada 3,64.26,12/07/2025,03,C18,N,N,N,N,Lançamento 91 entrada 3
+92,E,Captação de empréstimos,1678.86,29/05/2025,02,C25,N,N,N,N,Lançamento 92 captação de empréstimos
+93,S,Juros de empréstimo,144.52,09/04/2025,02,F7,N,N,N,N,Lançamento 93 juros de empréstimo
+94,E,Juros de aplicação,825.25,04/07/2025,02,C22,N,N,N,N,Lançamento 94 juros de aplicação
+95,S,Encargos sobre folha,4428.14,26/01/2025,02,F50,N,N,N,N,Lançamento 95 encargos sobre folha
+96,S,Internet,1644.1,09/12/2025,01,F36,N,N,N,N,Lançamento 96 internet
+97,E,Resgate,3544.65,15/04/2025,01,C999,N,N,N,N,Lançamento 97 resgate
+109,S,Aplicação de valor,3544.65,15/04/2025,03,F999,N,N,N,N,Contrapartida do lançamento 97
+98,S,Manutenção predial,4317.77,29/12/2025,03,F7,N,N,N,N,Lançamento 98 manutenção predial
+99,S,Salário,1265.41,01/01/2025,03,F33,N,N,N,N,Lançamento 99 salário
+100,S,Aplicação de valor,4831.9,07/03/2025,03,F28,N,N,N,N,Lançamento 100 aplicação de valor
