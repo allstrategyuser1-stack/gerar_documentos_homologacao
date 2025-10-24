@@ -1,68 +1,7 @@
-import streamlit as st
-import random
-import csv
-from datetime import datetime, timedelta
-import pandas as pd
-import io
+st.set_page_config(page_title="Abas com rolagem", layout="wide")
 
-st.set_page_config(page_title="Gerador de documentos fictícios (Fluxo)", layout="wide")
-st.title("Gerador de documentos fictícios (Fluxo) (v2.0.0)")
+st.title("Abas com botões de rolagem")
 
-# --- Função para gerar templates XLSX ---
-def gerar_template_xlsx(tipo):
-    output = io.BytesIO()
-    if tipo == "entrada":
-        df = pd.DataFrame({
-            "codigo": ["E001", "E002"],
-            "nome": ["Exemplo de entrada", "Venda de produto"]
-        })
-        sheet_name = "classificacoes_entrada"
-
-    elif tipo == "saida":
-        df = pd.DataFrame({
-            "codigo": ["S001", "S002"],
-            "nome": ["Exemplo de saída", "Pagamento de fornecedor"]
-        })
-        sheet_name = "classificacoes_saida"
-
-    elif tipo == "unidades":
-        df = pd.DataFrame({
-            "codigo": ["01", "02", "03"],
-            "nome": ["Matriz", "Filial SP", "Filial RJ"]
-        })
-        sheet_name = "unidades"
-
-    elif tipo == "tesouraria":
-        df = pd.DataFrame({
-            "codigo": ["T001", "T002"],
-            "nome": ["Conta Banco 1", "Caixa Interno"]
-        })
-        sheet_name = "tesouraria"
-
-    elif tipo == "centro_custo":
-        df = pd.DataFrame({
-            "codigo": ["CC01", "CC02"],
-            "nome": ["Administrativo", "Operacional"]
-        })
-        sheet_name = "centro_custo"
-
-    elif tipo == "tipos_doc":
-        df = pd.DataFrame({
-            "codigo": ["NF", "REC"],
-            "nome": ["Nota Fiscal", "Recibo"]
-        })
-        sheet_name = "tipos_documento"
-
-    else:
-        df = pd.DataFrame()
-
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name=sheet_name)
-    output.seek(0)
-    return output.getvalue()
-
-
-# --- Cria as abas ---
 abas = st.tabs([
     "Observações da função",
     "Período",
@@ -71,82 +10,9 @@ abas = st.tabs([
     "Tesouraria",
     "Centro de Custo (Opcional)",
     "Tipos de Documento (Opcional)",
+    "Outros Parâmetros",
     "Gerar CSV"
 ])
-
-st.markdown("""
-    <style>
-    /* Container das abas: permite rolar horizontalmente */
-    div[data-baseweb="tab-list"] {
-        display: flex;
-        overflow-x: auto !important;
-        scroll-behavior: smooth;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE e Edge antigos */
-    }
-
-    /* Oculta a barra de rolagem no Chrome/Safari */
-    div[data-baseweb="tab-list"]::-webkit-scrollbar {
-        display: none;
-    }
-
-    /* Cada aba */
-    div[data-baseweb="tab-list"] button[data-baseweb="tab"] {
-        flex: 0 0 auto;
-        white-space: nowrap !important;
-        margin-right: 8px;
-        padding: 6px 14px;
-        font-size: 15px;
-        border-radius: 6px;
-        transition: background 0.3s;
-    }
-
-    /* Área das setas laterais */
-    .tab-scroll-area {
-        position: relative;
-        width: 100%;
-    }
-
-    /* Botões laterais fixos */
-    .scroll-btn {
-        position: fixed;
-        top: 65px;
-        z-index: 999;
-        background-color: rgba(250,250,250,0.95);
-        border: 1px solid #ccc;
-        border-radius: 50%;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        color: #444;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        cursor: pointer;
-        user-select: none;
-        transition: all 0.2s;
-    }
-    .scroll-btn:hover {
-        background-color: #eee;
-        transform: scale(1.05);
-    }
-    .scroll-left { left: 8px; }
-    .scroll-right { right: 8px; }
-
-    /* Scroll snapping suave (funciona sem JS) */
-    div[data-baseweb="tab-list"] {
-        scroll-snap-type: x mandatory;
-    }
-    div[data-baseweb="tab-list"] button[data-baseweb="tab"] {
-        scroll-snap-align: start;
-    }
-    </style>
-
-    <!-- Botões de rolagem puramente visuais (sem JS) -->
-    <div class="scroll-btn scroll-left">❮</div>
-    <div class="scroll-btn scroll-right">❯</div>
-""", unsafe_allow_html=True)
 
 # ============================
 # --- Aba Observações ---
@@ -403,3 +269,52 @@ with abas[7]:
         st.download_button("📄 Download do arquivo gerado",
                            open(csv_file, "rb"),
                            file_name="documentos.csv")
+
+# --- Inserir o HTML + CSS + JS que controla a rolagem ---
+components.html(
+    """
+    <div style="position: fixed; top: 65px; left: 10px; z-index: 999;">
+        <button id="scrollLeft" style="
+            border: none;
+            background-color: rgba(245,245,245,0.95);
+            border-radius: 50%;
+            width: 36px; height: 36px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        ">❮</button>
+    </div>
+
+    <div style="position: fixed; top: 65px; right: 10px; z-index: 999;">
+        <button id="scrollRight" style="
+            border: none;
+            background-color: rgba(245,245,245,0.95);
+            border-radius: 50%;
+            width: 36px; height: 36px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        ">❯</button>
+    </div>
+
+    <script>
+    // Função para detectar o container de abas e rolar
+    function scrollTabs(direction) {
+        const tabList = window.parent.document.querySelector('div[data-baseweb="tab-list"]');
+        if (tabList) {
+            tabList.scrollBy({
+                left: direction * 150,  // ajuste o valor conforme o tamanho das abas
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    // Adiciona eventos aos botões
+    const leftBtn = document.getElementById('scrollLeft');
+    const rightBtn = document.getElementById('scrollRight');
+    leftBtn.addEventListener('click', () => scrollTabs(-1));
+    rightBtn.addEventListener('click', () => scrollTabs(1));
+    </script>
+    """,
+    height=80,
+)
