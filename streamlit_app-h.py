@@ -78,7 +78,7 @@ abas = st.tabs([
 # --- Aba Observações ---
 # ============================
 with abas[0]:
-st.markdown(
+    st.markdown(
     """
     <div style=
         'text-align: justify;
