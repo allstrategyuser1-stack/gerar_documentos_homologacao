@@ -1,3 +1,11 @@
+import streamlit as st
+import random
+import csv
+from datetime import datetime, timedelta
+import pandas as pd
+import io
+import streamlit.components.v1 as components
+
 st.set_page_config(page_title="Abas com rolagem", layout="wide")
 
 st.title("Abas com botões de rolagem")
