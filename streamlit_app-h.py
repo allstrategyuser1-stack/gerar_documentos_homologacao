@@ -373,6 +373,26 @@ elif opcao == "Gerar CSV":
     registros = []
     id_counter = 1
 
+# --- Garantir que variáveis existam antes de usar ---
+# tenta recuperar das variáveis locais/importadas; se não existirem, cria defaults
+if 'entradas_codigos' not in locals():
+    entradas_codigos = st.session_state.get("entradas_codigos", [])
+
+if 'saidas_codigos' not in locals():
+    saidas_codigos = st.session_state.get("saidas_codigos", [])
+
+if 'lista_unidades' not in locals():
+    lista_unidades = st.session_state.get("lista_unidades", ["01", "02", "03"])
+
+if 'lista_tesouraria' not in locals():
+    lista_tesouraria = st.session_state.get("lista_tesouraria", [])
+
+if 'lista_cc' not in locals():
+    lista_cc = st.session_state.get("lista_cc", [])
+
+if 'lista_tipos' not in locals():
+    lista_tipos = st.session_state.get("lista_tipos", [])
+
     if st.button("Gerar CSV"):
         # se listas estiverem vazias, preencha com defaults para evitar errors
         if not lista_unidades:
