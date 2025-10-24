@@ -74,83 +74,78 @@ abas = st.tabs([
     "Gerar CSV"
 ])
 
-# --- CSS + JS para adicionar setas de navegação nas abas ---
+# --- Scroll horizontal das abas e setas fixas ---
 st.markdown("""
     <style>
-    /* Container principal das abas */
+    /* Torna as abas roláveis horizontalmente */
     div[data-baseweb="tab-list"] {
         display: flex;
-        align-items: center;
-        position: relative;
-        overflow: hidden;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
         scroll-behavior: smooth;
+        scrollbar-width: none; /* esconde a barra no Firefox */
     }
 
-    /* As abas propriamente ditas */
+    /* Esconde a barra de rolagem (Chrome, Edge, Safari) */
+    div[data-baseweb="tab-list"]::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Cada aba */
     div[data-baseweb="tab-list"] button[data-baseweb="tab"] {
-        white-space: nowrap !important;
-        flex-shrink: 0;
-        margin: 0 4px;
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: 8px 16px;
+        margin-right: 6px;
+        font-size: 15px;
     }
 
-    /* Botões de navegação (setas) */
-    .tab-arrow {
-        position: absolute;
-        top: 0;
-        bottom: 0;
+    /* Botões de navegação fixos */
+    .scroll-btn {
+        position: fixed;
+        top: 65px;
         width: 28px;
-        background: linear-gradient(to right, rgba(255,255,255,0.9), rgba(255,255,255,0));
+        height: 28px;
         border: none;
-        cursor: pointer;
-        z-index: 10;
+        border-radius: 50%;
+        background-color: #f0f0f0;
+        color: #333;
         font-size: 18px;
         font-weight: bold;
-        color: #555;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0.8;
-        transition: opacity 0.2s;
+        cursor: pointer;
+        z-index: 999;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        opacity: 0.7;
+        transition: 0.2s;
     }
-    .tab-arrow:hover { opacity: 1; }
-
-    .tab-arrow.left { left: 0; transform: rotate(180deg); }
-    .tab-arrow.right { right: 0; }
-
-    /* Espaço para as setas não cobrirem o conteúdo */
-    div[data-baseweb="tab-list"]::before,
-    div[data-baseweb="tab-list"]::after {
-        content: "";
-        display: block;
-        width: 28px;
-        flex-shrink: 0;
-    }
+    .scroll-btn:hover { opacity: 1; }
+    .scroll-left { left: 10px; }
+    .scroll-right { right: 10px; }
     </style>
 
     <script>
-    // Aguarda a renderização das abas
-    setTimeout(() => {
+    // Espera carregar e adiciona listeners de rolagem
+    window.addEventListener('load', () => {
         const tabList = window.parent.document.querySelector('div[data-baseweb="tab-list"]');
-        if (tabList && !tabList.querySelector('.tab-arrow')) {
-
-            // Cria botões de navegação
-            const leftArrow = document.createElement('button');
-            leftArrow.innerHTML = '❮';
-            leftArrow.classList.add('tab-arrow', 'left');
-
-            const rightArrow = document.createElement('button');
-            rightArrow.innerHTML = '❯';
-            rightArrow.classList.add('tab-arrow', 'right');
-
-            tabList.parentElement.appendChild(leftArrow);
-            tabList.parentElement.appendChild(rightArrow);
-
-            // Função de rolagem suave
-            const scrollAmount = 150;
-            leftArrow.onclick = () => tabList.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-            rightArrow.onclick = () => tabList.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        if (tabList) {
+            let leftBtn = window.parent.document.querySelector('.scroll-left');
+            let rightBtn = window.parent.document.querySelector('.scroll-right');
+            if (!leftBtn) {
+                leftBtn = document.createElement('button');
+                leftBtn.textContent = '❮';
+                leftBtn.classList.add('scroll-btn','scroll-left');
+                document.body.appendChild(leftBtn);
+                leftBtn.onclick = () => tabList.scrollBy({left:-150,behavior:'smooth'});
+            }
+            if (!rightBtn) {
+                rightBtn = document.createElement('button');
+                rightBtn.textContent = '❯';
+                rightBtn.classList.add('scroll-btn','scroll-right');
+                document.body.appendChild(rightBtn);
+                rightBtn.onclick = () => tabList.scrollBy({left:150,behavior:'smooth'});
+            }
         }
-    }, 800);
+    });
     </script>
 """, unsafe_allow_html=True)
 
