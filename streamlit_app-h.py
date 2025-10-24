@@ -64,6 +64,7 @@ def gerar_template_xlsx(tipo):
 
 # --- Cria as abas ---
 abas = st.tabs([
+    "Observações da função"
     "Período",
     "Unidades",
     "Classificações",
@@ -74,10 +75,37 @@ abas = st.tabs([
 ])
 
 # ============================
-# --- Aba Período ---
+# --- Aba Observações ---
 # ============================
 with abas[0]:
-    st.header("Selecionar Período dos Registros")
+st.markdown(
+    """
+    <div style=
+        'text-align: justify;
+        font-size:18px;
+        border:1px solid #ddd;
+        border-radius:10px;
+        padding:15px;
+        background-color:#f9f9f9;'>
+        <h3 style=
+            'text-align:center;
+            color:#333;
+            '>Observações sobre a função
+        </h3>
+        <ul>
+            <li>A função gera documentos fictícios de entradas e saídas financeiras com base nos parâmetros definidos.</li>
+            <li>O campo de unidade deve ser preenchido com os códigos cadastrados no Fluxo e as unidades identificadas serão utilizadas de forma aleatória para cada documento.</li>
+            <li>O campo de classificações deve ser preenchido com os códigos <b>externos</b> cadastrados no Fluxo e as classificações podem ser importadas via arquivos CSV ou informadas manualmente e também serão utilizadas de forma aleatória.</li>
+            <li>O período de geração é determinado pelas datas inicial e final informadas.</li>
+            <li>As datas informadas identificam o período de <b>vencimento</b> dos documentos, a data de liquidação é aleatória e alguns documentos terão a data de liquidação em branco para simular atrasados ou previstos.</li>
+        </ul>
+    </div> """, unsafe_allow_html=True )
+
+# ============================
+# --- Aba Período ---
+# ============================
+with abas[1]:
+    st.header("Selecionar período dos registros")
     col1, col2 = st.columns(2)
     with col1:
         data_inicio_str = st.text_input("Data inicial (dd/mm/aaaa)", value="01/01/2025")
@@ -97,7 +125,7 @@ with abas[0]:
 # ============================
 # --- Aba Unidades ---
 # ============================
-with abas[1]:
+with abas[2]:
     st.header("Identificação de Unidades")
 
     col1, col2 = st.columns(2)
@@ -123,7 +151,7 @@ with abas[1]:
 # ============================
 # --- Aba Classificações ---
 # ============================
-with abas[2]:
+with abas[3]:
     st.header("Importar Classificações")
 
     col_esq, col_vline, col_dir = st.columns([48, 1, 48])
@@ -169,7 +197,7 @@ with abas[2]:
 # ============================
 # --- Aba Tesouraria ---
 # ============================
-with abas[3]:
+with abas[4]:
     st.header("Identificação da Tesouraria")
     col1, col2 = st.columns(2)
     with col1:
@@ -194,7 +222,7 @@ with abas[3]:
 # ============================
 # --- Aba Centro de Custo ---
 # ============================
-with abas[4]:
+with abas[5]:
     st.header("Centro de Custo (Opcional)")
     col1, col2 = st.columns(2)
     with col1:
@@ -219,7 +247,7 @@ with abas[4]:
 # ============================
 # --- Aba Tipos de Documento ---
 # ============================
-with abas[5]:
+with abas[6]:
     st.header("Tipos de Documento (Opcional)")
     col1, col2 = st.columns(2)
     with col1:
@@ -244,7 +272,7 @@ with abas[5]:
 # ============================
 # --- Aba Gerar CSV ---
 # ============================
-with abas[6]:
+with abas[7]:
     st.header("Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
 
