@@ -313,4 +313,11 @@ elif opcao == "Gerar CSV":
             writer.writerow([
                 "documento", "tipo", "valor", "cod_unidade", "data_venc",
                 "data_liq", "descricao", "cliente_fornecedor",
-                "tesouraria
+                "tesouraria", "centro_custo", "tipo_documento"
+            ])
+            writer.writerows(registros)
+
+        st.success(f"CSV gerado com {len(registros)} registros!")
+        st.download_button("📄 Download do arquivo gerado",
+                           open(csv_file, "rb"),
+                           file_name="documentos.csv")
