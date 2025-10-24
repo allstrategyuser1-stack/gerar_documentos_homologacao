@@ -74,6 +74,86 @@ abas = st.tabs([
     "Gerar CSV"
 ])
 
+# --- CSS + JS para adicionar setas de navegação nas abas ---
+st.markdown("""
+    <style>
+    /* Container principal das abas */
+    div[data-baseweb="tab-list"] {
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        scroll-behavior: smooth;
+    }
+
+    /* As abas propriamente ditas */
+    div[data-baseweb="tab-list"] button[data-baseweb="tab"] {
+        white-space: nowrap !important;
+        flex-shrink: 0;
+        margin: 0 4px;
+    }
+
+    /* Botões de navegação (setas) */
+    .tab-arrow {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 28px;
+        background: linear-gradient(to right, rgba(255,255,255,0.9), rgba(255,255,255,0));
+        border: none;
+        cursor: pointer;
+        z-index: 10;
+        font-size: 18px;
+        font-weight: bold;
+        color: #555;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+    .tab-arrow:hover { opacity: 1; }
+
+    .tab-arrow.left { left: 0; transform: rotate(180deg); }
+    .tab-arrow.right { right: 0; }
+
+    /* Espaço para as setas não cobrirem o conteúdo */
+    div[data-baseweb="tab-list"]::before,
+    div[data-baseweb="tab-list"]::after {
+        content: "";
+        display: block;
+        width: 28px;
+        flex-shrink: 0;
+    }
+    </style>
+
+    <script>
+    // Aguarda a renderização das abas
+    setTimeout(() => {
+        const tabList = window.parent.document.querySelector('div[data-baseweb="tab-list"]');
+        if (tabList && !tabList.querySelector('.tab-arrow')) {
+
+            // Cria botões de navegação
+            const leftArrow = document.createElement('button');
+            leftArrow.innerHTML = '❮';
+            leftArrow.classList.add('tab-arrow', 'left');
+
+            const rightArrow = document.createElement('button');
+            rightArrow.innerHTML = '❯';
+            rightArrow.classList.add('tab-arrow', 'right');
+
+            tabList.parentElement.appendChild(leftArrow);
+            tabList.parentElement.appendChild(rightArrow);
+
+            // Função de rolagem suave
+            const scrollAmount = 150;
+            leftArrow.onclick = () => tabList.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            rightArrow.onclick = () => tabList.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    }, 800);
+    </script>
+""", unsafe_allow_html=True)
+
 # ============================
 # --- Aba Observações ---
 # ============================
