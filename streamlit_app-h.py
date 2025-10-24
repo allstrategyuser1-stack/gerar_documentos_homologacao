@@ -4,7 +4,6 @@ import csv
 from datetime import datetime, timedelta
 import pandas as pd
 import io
-import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Gerador de documentos fictícios (Fluxo)", layout="wide")
 st.title("Gerador de documentos fictícios (Fluxo) (v2.0.0)")
@@ -56,17 +55,16 @@ def gerar_template_xlsx(tipo):
 
     else:
         df = pd.DataFrame()
+        sheet_name = "Sheet1"
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name=sheet_name)
     output.seek(0)
     return output.getvalue()
 
-st.set_page_config(page_title="Abas com rolagem", layout="wide")
 
-st.title("Abas com botões de rolagem")
-
-abas = st.tabs([
+# --- Menu lateral simulando abas ---
+opcao = st.sidebar.radio("Seções", [
     "Observações da função",
     "Período",
     "Unidades",
@@ -74,28 +72,22 @@ abas = st.tabs([
     "Tesouraria",
     "Centro de Custo (Opcional)",
     "Tipos de Documento (Opcional)",
-    "Outros Parâmetros",
     "Gerar CSV"
 ])
 
 # ============================
-# --- Aba Observações ---
+# --- Observações ---
 # ============================
-with abas[0]:
-    st.markdown(
-    """
-    <div style=
-        'text-align: justify;
+if opcao == "Observações da função":
+    st.markdown("""
+    <div style="
+        text-align: justify;
         font-size:18px;
         border:1px solid #ddd;
         border-radius:10px;
         padding:15px;
-        background-color:#f9f9f9;'>
-        <h3 style=
-            'text-align:center;
-            color:#333;
-            '>Observações sobre a função
-        </h3>
+        background-color:#f9f9f9;">
+        <h3 style="text-align:center; color:#333;">Observações sobre a função</h3>
         <ul>
             <li>A função gera documentos fictícios de entradas e saídas financeiras com base nos parâmetros definidos.</li>
             <li>O campo de unidade deve ser preenchido com os códigos cadastrados no Fluxo e as unidades identificadas serão utilizadas de forma aleatória para cada documento.</li>
@@ -103,12 +95,13 @@ with abas[0]:
             <li>O período de geração é determinado pelas datas inicial e final informadas.</li>
             <li>As datas informadas identificam o período de <b>vencimento</b> dos documentos, a data de liquidação é aleatória e alguns documentos terão a data de liquidação em branco para simular atrasados ou previstos.</li>
         </ul>
-    </div> """, unsafe_allow_html=True )
+    </div>
+    """, unsafe_allow_html=True)
 
 # ============================
-# --- Aba Período ---
+# --- Período ---
 # ============================
-with abas[1]:
+elif opcao == "Período":
     st.header("Selecionar período dos registros")
     col1, col2 = st.columns(2)
     with col1:
@@ -127,11 +120,10 @@ with abas[1]:
             st.stop()
 
 # ============================
-# --- Aba Unidades ---
+# --- Unidades ---
 # ============================
-with abas[2]:
+elif opcao == "Unidades":
     st.header("Identificação de Unidades")
-
     col1, col2 = st.columns(2)
     with col1:
         st.download_button(
@@ -153,13 +145,11 @@ with abas[2]:
         lista_unidades = [u.strip() for u in unidades_input.split(",") if u.strip()]
 
 # ============================
-# --- Aba Classificações ---
+# --- Classificações ---
 # ============================
-with abas[3]:
+elif opcao == "Classificações":
     st.header("Importar Classificações")
-
     col_esq, col_vline, col_dir = st.columns([48, 1, 48])
-
     with col_esq:
         st.subheader("Entradas")
         st.download_button(
@@ -169,10 +159,8 @@ with abas[3]:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
         arquivo_entradas = st.file_uploader("Importar lista de classificações de Entrada", type=["xlsx"])
-
     col_vline.markdown("""<div style="border-left:2px solid #CCC; height:240px; margin-left:50%;"></div>""",
                        unsafe_allow_html=True)
-
     with col_dir:
         st.subheader("Saídas")
         st.download_button(
@@ -190,7 +178,6 @@ with abas[3]:
     if arquivo_saidas is not None:
         df_saidas = pd.read_excel(arquivo_saidas)
         saidas_codigos = df_saidas["codigo"].dropna().astype(str).tolist()
-
     if not entradas_codigos:
         entradas_input = st.text_area("Classificações de Entrada (separadas por vírgula)", value="")
         entradas_codigos = [e.strip() for e in entradas_input.split(",") if e.strip()]
@@ -199,9 +186,9 @@ with abas[3]:
         saidas_codigos = [s.strip() for s in saidas_input.split(",") if s.strip()]
 
 # ============================
-# --- Aba Tesouraria ---
+# --- Tesouraria ---
 # ============================
-with abas[4]:
+elif opcao == "Tesouraria":
     st.header("Identificação da Tesouraria")
     col1, col2 = st.columns(2)
     with col1:
@@ -224,9 +211,9 @@ with abas[4]:
         lista_tesouraria = [t.strip() for t in tes_input.split(",") if t.strip()]
 
 # ============================
-# --- Aba Centro de Custo ---
+# --- Centro de Custo ---
 # ============================
-with abas[5]:
+elif opcao == "Centro de Custo (Opcional)":
     st.header("Centro de Custo (Opcional)")
     col1, col2 = st.columns(2)
     with col1:
@@ -249,9 +236,9 @@ with abas[5]:
         lista_cc = [c.strip() for c in cc_input.split(",") if c.strip()]
 
 # ============================
-# --- Aba Tipos de Documento ---
+# --- Tipos de Documento ---
 # ============================
-with abas[6]:
+elif opcao == "Tipos de Documento (Opcional)":
     st.header("Tipos de Documento (Opcional)")
     col1, col2 = st.columns(2)
     with col1:
@@ -274,12 +261,13 @@ with abas[6]:
         lista_tipos = [t.strip() for t in tipos_input.split(",") if t.strip()]
 
 # ============================
-# --- Aba Gerar CSV ---
+# --- Gerar CSV ---
 # ============================
-with abas[7]:
+elif opcao == "Gerar CSV":
     st.header("Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
 
+    # Funções auxiliares
     def random_date(start, end):
         delta = end - start
         return start + timedelta(days=random.randint(0, delta.days))
@@ -325,60 +313,4 @@ with abas[7]:
             writer.writerow([
                 "documento", "tipo", "valor", "cod_unidade", "data_venc",
                 "data_liq", "descricao", "cliente_fornecedor",
-                "tesouraria", "centro_custo", "tipo_documento"
-            ])
-            writer.writerows(registros)
-
-        st.success(f"CSV gerado com {len(registros)} registros!")
-        st.download_button("📄 Download do arquivo gerado",
-                           open(csv_file, "rb"),
-                           file_name="documentos.csv")
-
-# --- Inserir o HTML + CSS + JS que controla a rolagem ---
-components.html(
-    """
-    <div style="position: fixed; top: 65px; left: 10px; z-index: 999;">
-        <button id="scrollLeft" style="
-            border: none;
-            background-color: rgba(245,245,245,0.95);
-            border-radius: 50%;
-            width: 36px; height: 36px;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        ">❮</button>
-    </div>
-
-    <div style="position: fixed; top: 65px; right: 10px; z-index: 999;">
-        <button id="scrollRight" style="
-            border: none;
-            background-color: rgba(245,245,245,0.95);
-            border-radius: 50%;
-            width: 36px; height: 36px;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        ">❯</button>
-    </div>
-
-    <script>
-    // Função para detectar o container de abas e rolar
-    function scrollTabs(direction) {
-        const tabList = window.parent.document.querySelector('div[data-baseweb="tab-list"]');
-        if (tabList) {
-            tabList.scrollBy({
-                left: direction * 150,  // ajuste o valor conforme o tamanho das abas
-                behavior: 'smooth'
-            });
-        }
-    }
-
-    // Adiciona eventos aos botões
-    const leftBtn = document.getElementById('scrollLeft');
-    const rightBtn = document.getElementById('scrollRight');
-    leftBtn.addEventListener('click', () => scrollTabs(-1));
-    rightBtn.addEventListener('click', () => scrollTabs(1));
-    </script>
-    """,
-    height=80,
-)
+                "tesouraria
