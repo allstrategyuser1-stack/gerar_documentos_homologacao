@@ -1,15 +1,42 @@
 import streamlit as st
 import random
 import csv
-from datetime import datetime, timedelta
-import pandas as pd
 import io
+import pandas as pd
+from datetime import datetime, timedelta
 
-# ---------- Config ----------
+# ---------------------------------------------
+# Configuração inicial
+# ---------------------------------------------
 st.set_page_config(page_title="Gerador de documentos fictícios (Fluxo)", layout="wide")
-st.title("Gerador de documentos fictícios (Fluxo) (v2.0.0)")
+st.title("Gerador de documentos fictícios (Fluxo) (v3.1.0 - Reset de dados)")
 
-# ---------- Função para gerar templates XLSX ----------
+# ---------------------------------------------
+# Botão lateral para reset
+# ---------------------------------------------
+if st.sidebar.button("🔁 Resetar todos os dados"):
+    st.session_state.clear()
+    st.experimental_rerun()  # Reinicia o app após limpar
+
+# ---------------------------------------------
+# Inicialização do session_state
+# ---------------------------------------------
+def init_state(key, default):
+    if key not in st.session_state:
+        st.session_state[key] = default
+
+init_state("data_inicio", datetime(2025, 1, 1))
+init_state("data_fim", datetime(2025, 12, 31))
+init_state("lista_unidades", [])
+init_state("entradas_codigos", [])
+init_state("saidas_codigos", [])
+init_state("lista_tesouraria", [])
+init_state("lista_cc", [])
+init_state("lista_tipos", [])
+
+# ---------------------------------------------
+# Função para gerar templates XLSX
+# ---------------------------------------------
 def gerar_template_xlsx(tipo):
     output = io.BytesIO()
     if tipo == "entrada":
@@ -39,19 +66,9 @@ def gerar_template_xlsx(tipo):
     output.seek(0)
     return output.getvalue()
 
-# ---------- Defaults / variáveis globais (para serem usadas ao gerar CSV) ----------
-# esses valores garantem que a tela "Gerar CSV" terá algo mesmo que o usuário não importe nada
-data_inicio = datetime(2025, 1, 1)
-data_fim = datetime(2025, 12, 31)
-
-entradas_codigos = []
-saidas_codigos = []
-lista_unidades = []
-lista_tesouraria = []
-lista_cc = []
-lista_tipos = []
-
-# ---------- Menu lateral (simula abas) ----------
+# ---------------------------------------------
+# Menu lateral
+# ---------------------------------------------
 opcao = st.sidebar.radio("Seções", [
     "Observações da função",
     "Período",
