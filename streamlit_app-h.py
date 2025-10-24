@@ -6,6 +6,62 @@ import pandas as pd
 import io
 import streamlit.components.v1 as components
 
+st.set_page_config(page_title="Gerador de documentos fictícios (Fluxo)", layout="wide")
+st.title("Gerador de documentos fictícios (Fluxo) (v2.0.0)")
+
+# --- Função para gerar templates XLSX ---
+def gerar_template_xlsx(tipo):
+    output = io.BytesIO()
+    if tipo == "entrada":
+        df = pd.DataFrame({
+            "codigo": ["E001", "E002"],
+            "nome": ["Exemplo de entrada", "Venda de produto"]
+        })
+        sheet_name = "classificacoes_entrada"
+
+    elif tipo == "saida":
+        df = pd.DataFrame({
+            "codigo": ["S001", "S002"],
+            "nome": ["Exemplo de saída", "Pagamento de fornecedor"]
+        })
+        sheet_name = "classificacoes_saida"
+
+    elif tipo == "unidades":
+        df = pd.DataFrame({
+            "codigo": ["01", "02", "03"],
+            "nome": ["Matriz", "Filial SP", "Filial RJ"]
+        })
+        sheet_name = "unidades"
+
+    elif tipo == "tesouraria":
+        df = pd.DataFrame({
+            "codigo": ["T001", "T002"],
+            "nome": ["Conta Banco 1", "Caixa Interno"]
+        })
+        sheet_name = "tesouraria"
+
+    elif tipo == "centro_custo":
+        df = pd.DataFrame({
+            "codigo": ["CC01", "CC02"],
+            "nome": ["Administrativo", "Operacional"]
+        })
+        sheet_name = "centro_custo"
+
+    elif tipo == "tipos_doc":
+        df = pd.DataFrame({
+            "codigo": ["NF", "REC"],
+            "nome": ["Nota Fiscal", "Recibo"]
+        })
+        sheet_name = "tipos_documento"
+
+    else:
+        df = pd.DataFrame()
+
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name=sheet_name)
+    output.seek(0)
+    return output.getvalue()
+
 st.set_page_config(page_title="Abas com rolagem", layout="wide")
 
 st.title("Abas com botões de rolagem")
