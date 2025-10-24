@@ -64,7 +64,7 @@ def gerar_template_xlsx(tipo):
 
 # --- Cria as abas ---
 abas = st.tabs([
-    "Observações da função"
+    "Observações da função",
     "Período",
     "Unidades",
     "Classificações",
