@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 # Configuração inicial
 # ---------------------------------------------
 st.set_page_config(page_title="Gerador de documentos fictícios (Fluxo)", layout="wide")
-st.title("Gerador de documentos fictícios (Fluxo) (v3.1.0 - Reset de dados)")
+st.title("Gerador de documentos fictícios (Fluxo) (v2.0.0)")
 
 # ---------------------------------------------
 # Botão lateral para reset
@@ -69,7 +69,7 @@ def gerar_template_xlsx(tipo):
 # ---------------------------------------------
 # Menu lateral
 # ---------------------------------------------
-opcao = st.sidebar.radio("Seções", [
+menu_itens = [
     "Observações da função",
     "Período",
     "Unidades",
@@ -78,7 +78,53 @@ opcao = st.sidebar.radio("Seções", [
     "Centro de Custo (Opcional)",
     "Tipos de Documento (Opcional)",
     "Gerar CSV"
-])
+]
+
+# Estado inicial do menu
+if "aba_ativa" not in st.session_state:
+    st.session_state["aba_ativa"] = menu_itens[0]
+
+# Renderiza o menu com HTML e CSS
+st.sidebar.markdown(
+    """
+    <style>
+    .menu-botao {
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #444;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        text-align: left;
+    }
+    .menu-botao:hover {
+        background-color: #ffe082; /* dourado claro ao passar o mouse */
+    }
+    .menu-ativo {
+        background-color: #FFD700 !important; /* dourado */
+        color: black !important;
+        font-weight: 700 !important;
+        border: 1px solid #d4af37;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Cria botões de navegação clicáveis
+for item in menu_itens:
+    if item == st.session_state["aba_ativa"]:
+        st.sidebar.markdown(f"<div class='menu-botao menu-ativo'>{item}</div>", unsafe_allow_html=True)
+    else:
+        if st.sidebar.button(item):
+            st.session_state["aba_ativa"] = item
+            st.experimental_rerun()
+
+# A aba ativa passa a ser:
+opcao = st.session_state["aba_ativa"]
 
 # ============================
 # Observações
