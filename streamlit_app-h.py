@@ -74,19 +74,18 @@ abas = st.tabs([
     "Gerar CSV"
 ])
 
-# --- Scroll horizontal das abas e setas fixas ---
 st.markdown("""
     <style>
-    /* Torna as abas roláveis horizontalmente */
+    /* Container das abas: permite rolar horizontalmente */
     div[data-baseweb="tab-list"] {
         display: flex;
-        flex-wrap: nowrap !important;
         overflow-x: auto !important;
         scroll-behavior: smooth;
-        scrollbar-width: none; /* esconde a barra no Firefox */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE e Edge antigos */
     }
 
-    /* Esconde a barra de rolagem (Chrome, Edge, Safari) */
+    /* Oculta a barra de rolagem no Chrome/Safari */
     div[data-baseweb="tab-list"]::-webkit-scrollbar {
         display: none;
     }
@@ -94,59 +93,59 @@ st.markdown("""
     /* Cada aba */
     div[data-baseweb="tab-list"] button[data-baseweb="tab"] {
         flex: 0 0 auto;
-        white-space: nowrap;
-        padding: 8px 16px;
-        margin-right: 6px;
+        white-space: nowrap !important;
+        margin-right: 8px;
+        padding: 6px 14px;
         font-size: 15px;
+        border-radius: 6px;
+        transition: background 0.3s;
     }
 
-    /* Botões de navegação fixos */
+    /* Área das setas laterais */
+    .tab-scroll-area {
+        position: relative;
+        width: 100%;
+    }
+
+    /* Botões laterais fixos */
     .scroll-btn {
         position: fixed;
         top: 65px;
-        width: 28px;
-        height: 28px;
-        border: none;
-        border-radius: 50%;
-        background-color: #f0f0f0;
-        color: #333;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
         z-index: 999;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        opacity: 0.7;
-        transition: 0.2s;
+        background-color: rgba(250,250,250,0.95);
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #444;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s;
     }
-    .scroll-btn:hover { opacity: 1; }
-    .scroll-left { left: 10px; }
-    .scroll-right { right: 10px; }
+    .scroll-btn:hover {
+        background-color: #eee;
+        transform: scale(1.05);
+    }
+    .scroll-left { left: 8px; }
+    .scroll-right { right: 8px; }
+
+    /* Scroll snapping suave (funciona sem JS) */
+    div[data-baseweb="tab-list"] {
+        scroll-snap-type: x mandatory;
+    }
+    div[data-baseweb="tab-list"] button[data-baseweb="tab"] {
+        scroll-snap-align: start;
+    }
     </style>
 
-    <script>
-    // Espera carregar e adiciona listeners de rolagem
-    window.addEventListener('load', () => {
-        const tabList = window.parent.document.querySelector('div[data-baseweb="tab-list"]');
-        if (tabList) {
-            let leftBtn = window.parent.document.querySelector('.scroll-left');
-            let rightBtn = window.parent.document.querySelector('.scroll-right');
-            if (!leftBtn) {
-                leftBtn = document.createElement('button');
-                leftBtn.textContent = '❮';
-                leftBtn.classList.add('scroll-btn','scroll-left');
-                document.body.appendChild(leftBtn);
-                leftBtn.onclick = () => tabList.scrollBy({left:-150,behavior:'smooth'});
-            }
-            if (!rightBtn) {
-                rightBtn = document.createElement('button');
-                rightBtn.textContent = '❯';
-                rightBtn.classList.add('scroll-btn','scroll-right');
-                document.body.appendChild(rightBtn);
-                rightBtn.onclick = () => tabList.scrollBy({left:150,behavior:'smooth'});
-            }
-        }
-    });
-    </script>
+    <!-- Botões de rolagem puramente visuais (sem JS) -->
+    <div class="scroll-btn scroll-left">❮</div>
+    <div class="scroll-btn scroll-right">❯</div>
 """, unsafe_allow_html=True)
 
 # ============================
