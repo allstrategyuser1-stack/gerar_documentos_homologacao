@@ -29,21 +29,16 @@ init_state("lista_tipos", ["NF", "REC"])
 init_state("registros_gerados", [])
 
 # -----------------------------
-# CSS para botão destaque
+# CSS global para botão amarelo claro
 # -----------------------------
 st.markdown("""
 <style>
-.button-destaque button {
+div.stButton > button {
     background-color: #fff59d !important;  /* amarelo claro */
     color: black !important;
     font-weight: bold;
     border-radius: 8px;
-    padding: 0.75em 2em;
-    width: 100%;
-    max-width: 400px;
-    font-size: 16px;
-    display: block;
-    margin: 0 auto;
+    padding: 0.5em 1em;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -132,19 +127,10 @@ def exibir_dashboard(df):
         st.bar_chart(df.groupby("cod_unidade")['valor'].sum())
 
 # -----------------------------
-# Função genérica de avanço de passo
+# Função para avançar passo
 # -----------------------------
 def avancar_step():
     st.session_state.step += 1
-
-# -----------------------------
-# Botão de destaque centralizado
-# -----------------------------
-def botao_avancar(label, on_click):
-    # centraliza usando coluna do meio
-    col1, col2, col3 = st.columns([1,2,1])
-    with col2:
-        return st.button(label, key=label, on_click=on_click, help="Clique para avançar passo", args=())
 
 # -----------------------------
 # Expander de Observações
@@ -162,46 +148,53 @@ with st.expander("Observações da função", expanded=False):
 # -----------------------------
 step = st.session_state.step
 
+# Passo 0 - Período
 if step == 0:
     st.markdown("### 📅 Selecionar Período")
     data_inicio = st.date_input("Data inicial", value=st.session_state.data_inicio)
     data_fim = st.date_input("Data final", value=st.session_state.data_fim)
-
     if data_fim < data_inicio:
         st.error("A data final não pode ser menor que a inicial!")
     else:
-        botao_avancar("Próximo: Unidades", lambda: st.session_state.update({"data_inicio": data_inicio, "data_fim": data_fim}) or avancar_step())
+        st.button("Próximo: Unidades", on_click=lambda: st.session_state.update({"data_inicio": data_inicio, "data_fim": data_fim}) or avancar_step())
 
+# Passo 1 - Unidades
 elif step == 1:
     preenchido = atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
     if preenchido:
-        botao_avancar("Próximo: Classificações", avancar_step)
+        st.button("Próximo: Classificações", on_click=avancar_step)
 
+# Passo 2 - Classificações
 elif step == 2:
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     if entradas_ok and saidas_ok:
-        botao_avancar("Próximo: Tesouraria", avancar_step)
+        st.button("Próximo: Tesouraria", on_click=avancar_step)
 
+# Passo 3 - Tesouraria
 elif step == 3:
     preenchido = atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
     if preenchido:
-        botao_avancar("Próximo: Centro de Custo", avancar_step)
+        st.button("Próximo: Centro de Custo", on_click=avancar_step)
 
+# Passo 4 - Centro de Custo
 elif step == 4:
     preenchido = atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
     if preenchido:
-        botao_avancar("Próximo: Tipos de Documento", avancar_step)
+        st.button("Próximo: Tipos de Documento", on_click=avancar_step)
 
+# Passo 5 - Tipos de Documento
 elif step == 5:
     preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
     if preenchido:
-        botao_avancar("Próximo: Gerar CSV", avancar_step)
+        st.button("Próximo: Gerar CSV", on_click=avancar_step)
 
+# Passo 6 - Gerar CSV
 elif step == 6:
     st.markdown("### 💾 Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
-    
+
+    # Função para gerar CSV e atualizar session_state
     def gerar_csv():
         registros = gerar_registros_csv(num_registros)
         df = pd.DataFrame(registros, columns=[
@@ -211,6 +204,7 @@ elif step == 6:
         st.session_state.registros_gerados = df
         st.success(f"CSV gerado com {len(registros)} registros!")
 
+        # Botão de download do CSV
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False)
         st.download_button(
@@ -220,6 +214,8 @@ elif step == 6:
             mime="text/csv"
         )
 
+        # Dashboard
         exibir_dashboard(df)
 
-    botao_avancar("Gerar CSV", gerar_csv)
+    # Botão amarelo claro no mesmo estilo dos anteriores
+    st.button("Gerar CSV", on_click=gerar_csv)
