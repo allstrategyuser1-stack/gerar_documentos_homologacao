@@ -35,18 +35,29 @@ init_state("registros_gerados", [])
 st.markdown("""
 <style>
 #botao_voltar button {
-    background-color: #ffc59d;
+    background-color: #ffc59d !important;
     color: black !important;
     font-weight: bold;
     border-radius: 8px;
-    padding: 0.5em 1em;
+    padding: 0.6em 1.2em;
+    border: none;
+    transition: 0.2s;
 }
+#botao_voltar button:hover {
+    background-color: #ffae6d !important;
+}
+
 #botao_avancar button {
     background-color: #fff59d !important;
     color: black !important;
     font-weight: bold;
     border-radius: 8px;
-    padding: 0.5em 1em;
+    padding: 0.6em 1.2em;
+    border: none;
+    transition: 0.2s;
+}
+#botao_avancar button:hover {
+    background-color: #ffeb3b !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -238,11 +249,17 @@ def voltar_step():
 # -----------------------------
 def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
     col1, col2 = st.columns([1,1])
+    
     with col1:
-        st.button("⬅ Voltar", on_click=voltar_step, key="botao_voltar")
+        st.markdown('<div id="botao_voltar">', unsafe_allow_html=True)
+        st.button("⬅ Voltar", on_click=voltar_step)
+        st.markdown('</div>', unsafe_allow_html=True)
+    
     with col2:
         if preenchido:
-            st.button(label_proximo, on_click=avancar_step, key="botao_avancar")
+            st.markdown('<div id="botao_avancar">', unsafe_allow_html=True)
+            st.button(label_proximo, on_click=avancar_step)
+            st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------
 # Wizard passo a passo com layout consistente
