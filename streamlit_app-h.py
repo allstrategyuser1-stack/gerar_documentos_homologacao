@@ -124,7 +124,7 @@ if st.session_state.step == 0:
     """)
     if st.button("Próximo: Período"):
         st.session_state.step += 1
-        st.experimental_rerun()
+        st.rerun()
 
 # Passo 1 - Período
 elif st.session_state.step == 1:
@@ -136,7 +136,7 @@ elif st.session_state.step == 1:
     if data_fim >= data_inicio:
         if st.button("Próximo: Unidades"):
             st.session_state.step += 1
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.error("A data final não pode ser menor que a inicial!")
 
@@ -146,7 +146,7 @@ elif st.session_state.step == 2:
     if preenchido:
         if st.button("Próximo: Classificações"):
             st.session_state.step += 1
-            st.experimental_rerun()
+            st.rerun()
 
 # Passo 3 - Classificações
 elif st.session_state.step == 3:
@@ -155,7 +155,7 @@ elif st.session_state.step == 3:
     if entradas_ok and saidas_ok:
         if st.button("Próximo: Tesouraria"):
             st.session_state.step += 1
-            st.experimental_rerun()
+            st.rerun()
 
 # Passo 4 - Tesouraria
 elif st.session_state.step == 4:
@@ -163,7 +163,7 @@ elif st.session_state.step == 4:
     if preenchido:
         if st.button("Próximo: Centro de Custo"):
             st.session_state.step += 1
-            st.experimental_rerun()
+            st.rerun()
 
 # Passo 5 - Centro de Custo
 elif st.session_state.step == 5:
@@ -171,7 +171,7 @@ elif st.session_state.step == 5:
     if preenchido:
         if st.button("Próximo: Tipos de Documento"):
             st.session_state.step += 1
-            st.experimental_rerun()
+            st.rerun()
 
 # Passo 6 - Tipos de Documento
 elif st.session_state.step == 6:
@@ -179,7 +179,7 @@ elif st.session_state.step == 6:
     if preenchido:
         if st.button("Próximo: Gerar CSV"):
             st.session_state.step += 1
-            st.experimental_rerun()
+            st.rerun()
 
 # Passo 7 - Gerar CSV
 elif st.session_state.step == 7:
