@@ -29,11 +29,19 @@ init_state("lista_tipos", ["NF", "REC"])
 init_state("registros_gerados", [])
 
 # -----------------------------
-# CSS global para botão amarelo claro
+# CSS para botões
 # -----------------------------
+
 st.markdown("""
 <style>
-div.stButton > button {
+#botao_voltar button {
+    background-color: #ffc59d;
+    color: black !important;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 0.5em 1em;
+}
+#botao_avancar button {
     background-color: #fff59d !important;
     color: black !important;
     font-weight: bold;
@@ -231,10 +239,10 @@ def voltar_step():
 def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
     col1, col2 = st.columns([1,1])
     with col1:
-        st.button("⬅ Voltar", on_click=voltar_step)
+        st.button("⬅ Voltar", on_click=voltar_step, key="botao_voltar")
     with col2:
         if preenchido:
-            st.button(label_proximo, on_click=avancar_step)
+            st.button(label_proximo, on_click=avancar_step, key=)
 
 # -----------------------------
 # Wizard passo a passo com layout consistente
