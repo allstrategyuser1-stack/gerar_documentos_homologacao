@@ -94,21 +94,25 @@ def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
 def gerar_registros_csv(n):
     registros = []
     hoje = datetime.today()
-    
+    data_inicio = st.session_state.data_inicio
+
     for id_counter in range(1, n+1):
         tipo = random.choice(["E", "S"])
         descricao = random.choice(st.session_state.entradas_codigos if tipo=="E" else st.session_state.saidas_codigos)
         valor = round(random.uniform(1, 101000), 2)
         
-        # Datas aleatórias dentro do período
-        vencimento = st.session_state.data_inicio + timedelta(days=random.randint(0, (st.session_state.data_fim - st.session_state.data_inicio).days))
+        # Datas aleatórias dentro do período definido
+        vencimento = data_inicio + timedelta(days=random.randint(0, (st.session_state.data_fim - data_inicio).days))
         
         # Pagamento aleatório ±5 dias do vencimento, 50% de chance de existir
         pagamento = vencimento + timedelta(days=random.randint(-5,5)) if random.random() < 0.5 else None
         
-        # Garantir que pagamento não seja maior que hoje
-        if pagamento and pagamento > hoje:
-            pagamento = hoje
+        # Garantir que pagamento não seja antes do início nem depois de hoje
+        if pagamento:
+            if pagamento < data_inicio:
+                pagamento = data_inicio
+            elif pagamento > hoje:
+                pagamento = hoje
         
         # Converte para string dd/mm/aaaa
         venc_str = vencimento.strftime("%d/%m/%Y")
