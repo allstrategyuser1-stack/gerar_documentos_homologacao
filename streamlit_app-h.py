@@ -34,7 +34,7 @@ init_state("registros_gerados", [])
 st.markdown("""
 <style>
 div.stButton > button {
-    background-color: #fff59d !important;  /* amarelo claro */
+    background-color: #fff59d !important;
     color: black !important;
     font-weight: bold;
     border-radius: 8px;
@@ -95,34 +95,39 @@ def gerar_registros_csv(n):
     registros = []
     hoje = datetime.today()
     data_inicio = st.session_state.data_inicio
+    data_fim = st.session_state.data_fim
 
     for id_counter in range(1, n+1):
         tipo = random.choice(["E", "S"])
-        descricao = random.choice(st.session_state.entradas_codigos if tipo=="E" else st.session_state.saidas_codigos)
+        descricao = random.choice(
+            st.session_state.entradas_codigos if tipo=="E" else st.session_state.saidas_codigos
+        ) if (st.session_state.entradas_codigos if tipo=="E" else st.session_state.saidas_codigos) else ""
         valor = round(random.uniform(1, 101000), 2)
-        
-        # Datas aleatórias dentro do período definido
-        vencimento = data_inicio + timedelta(days=random.randint(0, (st.session_state.data_fim - data_inicio).days))
-        
-        # Pagamento aleatório ±5 dias do vencimento, 50% de chance de existir
+
+        # Datas aleatórias
+        vencimento = data_inicio + timedelta(days=random.randint(0, (data_fim - data_inicio).days))
         pagamento = vencimento + timedelta(days=random.randint(-5,5)) if random.random() < 0.5 else None
-        
-        # Garantir que pagamento não seja antes do início nem depois de hoje
+
+        # Ajusta pagamento para não passar do início ou hoje
         if pagamento:
             if pagamento < data_inicio:
                 pagamento = data_inicio
             elif pagamento > hoje:
                 pagamento = hoje
-        
-        # Converte para string dd/mm/aaaa
+
         venc_str = vencimento.strftime("%d/%m/%Y")
         pagamento_str = pagamento.strftime("%d/%m/%Y") if pagamento else ""
-        
         cliente_fornecedor = f"C{random.randint(1,50)}" if tipo=="E" else f"F{random.randint(1,50)}"
-        
+
         registros.append([
-            id_counter, tipo, valor, random.choice(st.session_state.lista_unidades),
-            venc_str, pagamento_str, descricao, cliente_fornecedor,
+            id_counter,
+            tipo,
+            valor,
+            random.choice(st.session_state.lista_unidades) if st.session_state.lista_unidades else "",
+            venc_str,
+            pagamento_str,
+            descricao,
+            cliente_fornecedor,
             random.choice(st.session_state.lista_tesouraria) if st.session_state.lista_tesouraria else "",
             random.choice(st.session_state.lista_cc) if st.session_state.lista_cc else "",
             random.choice(st.session_state.lista_tipos) if st.session_state.lista_tipos else ""
@@ -133,10 +138,10 @@ def exibir_dashboard(df):
     st.subheader("📊 Mini-Dashboard")
     col1, col2 = st.columns(2)
     with col1:
-        entradas = df[df['tipo']=='E'].shape[0]
-        saídas = df[df['tipo']=='S'].shape[0]
+        entradas = df[df['natureza']=='E'].shape[0]
+        saidas = df[df['natureza']=='S'].shape[0]
         st.metric("Entradas", entradas)
-        st.metric("Saídas", saídas)
+        st.metric("Saídas", saidas)
     with col2:
         total_valor = df['valor'].sum()
         st.metric("Valor total", f"R$ {total_valor:,.2f}")
@@ -148,7 +153,7 @@ def avancar_step():
     st.session_state.step += 1
 
 # -----------------------------
-# Expander de Observações
+# Observações
 # -----------------------------
 with st.expander("Observações da função", expanded=False):
     st.info("""
@@ -163,21 +168,12 @@ with st.expander("Observações da função", expanded=False):
 # -----------------------------
 step = st.session_state.step
 
-# -----------------------------
 # Passo 0 - Período
-# -----------------------------
 if step == 0:
     st.markdown("### 📅 Selecionar Período")
-    
-    # Valores iniciais no formato dd/mm/aaaa
-    data_inicio_str = st.text_input(
-        "Data inicial", value=st.session_state.data_inicio.strftime("%d/%m/%Y")
-    )
-    data_fim_str = st.text_input(
-        "Data final", value=st.session_state.data_fim.strftime("%d/%m/%Y")
-    )
+    data_inicio_str = st.text_input("Data inicial", value=st.session_state.data_inicio.strftime("%d/%m/%Y"))
+    data_fim_str = st.text_input("Data final", value=st.session_state.data_fim.strftime("%d/%m/%Y"))
 
-    # Função para validar a data no formato dd/mm/aaaa
     def validar_data(data_str):
         try:
             return datetime.strptime(data_str, "%d/%m/%Y").date()
@@ -187,7 +183,6 @@ if step == 0:
     data_inicio = validar_data(data_inicio_str)
     data_fim = validar_data(data_fim_str)
 
-    # Validações e mensagens de erro
     if data_inicio is None:
         st.error("Data inicial inválida! Use o formato dd/mm/aaaa")
     elif data_fim is None:
@@ -202,7 +197,6 @@ if step == 0:
                 "data_fim": data_fim
             }) or avancar_step()
         )
-
 
 # Passo 1 - Unidades
 elif step == 1:
@@ -235,44 +229,11 @@ elif step == 5:
     if preenchido:
         st.button("Próximo: Gerar CSV", on_click=avancar_step)
 
-# -----------------------------
 # Passo 6 - Gerar CSV
-# -----------------------------
 elif step == 6:
     st.markdown("### 💾 Gerar CSV com dados")
-    
-    num_registros = st.number_input(
-        "Número de registros", min_value=10, max_value=10000, value=100
-    )
+    num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
 
-    # Função que gera registros com datas já no formato dd/mm/aaaa
-    def gerar_registros_csv(n):
-        registros = []
-        for id_counter in range(1, n+1):
-            tipo = random.choice(["E", "S"])
-            descricao = random.choice(st.session_state.entradas_codigos if tipo=="E" else st.session_state.saidas_codigos)
-            valor = round(random.uniform(1, 101000), 2)
-            
-            # Datas aleatórias dentro do período
-            vencimento = st.session_state.data_inicio + timedelta(days=random.randint(0, (st.session_state.data_fim - st.session_state.data_inicio).days))
-            pagamento = vencimento + timedelta(days=random.randint(-5,5)) if random.random() < 0.5 else None
-            
-            # Converte para string dd/mm/aaaa
-            venc_str = vencimento.strftime("%d/%m/%Y")
-            pagamento_str = pagamento.strftime("%d/%m/%Y") if pagamento else ""
-            
-            cliente_fornecedor = f"C{random.randint(1,50)}" if tipo=="E" else f"F{random.randint(1,50)}"
-            
-            registros.append([
-                id_counter, tipo, valor, random.choice(st.session_state.lista_unidades),
-                venc_str, pagamento_str, descricao, cliente_fornecedor,
-                random.choice(st.session_state.lista_tesouraria) if st.session_state.lista_tesouraria else "",
-                random.choice(st.session_state.lista_cc) if st.session_state.lista_cc else "",
-                random.choice(st.session_state.lista_tipos) if st.session_state.lista_tipos else ""
-            ])
-        return registros
-
-    # Função que gera CSV e atualiza session_state
     def gerar_csv():
         registros = gerar_registros_csv(num_registros)
         df = pd.DataFrame(registros, columns=[
@@ -282,22 +243,15 @@ elif step == 6:
         st.session_state.registros_gerados = df
         st.session_state.csv_gerado = True
 
-    # Botão amarelo claro para gerar CSV
     st.button("Gerar CSV", on_click=gerar_csv)
 
-    # Após gerar CSV, exibe download e dashboards
     if st.session_state.get("csv_gerado", False):
         df = st.session_state.registros_gerados
 
         # Download CSV
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False)
-        st.download_button(
-            "📥 Download CSV", 
-            data=csv_buffer.getvalue(), 
-            file_name="documentos.csv", 
-            mime="text/csv"
-        )
+        st.download_button("📥 Download CSV", data=csv_buffer.getvalue(), file_name="documentos.csv", mime="text/csv")
 
         # Dashboard com quantidade e valor separados por Entradas e Saídas
         st.subheader("📊 Registros e Valores")
