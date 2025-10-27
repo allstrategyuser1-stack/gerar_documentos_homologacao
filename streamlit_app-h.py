@@ -71,7 +71,7 @@ def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
                     st.error("Arquivo inválido: coluna 'codigo' não encontrada")
             except Exception as e:
                 st.error(f"Erro ao ler arquivo: {e}")
-    entrada = st.text_area(f"{nome} (separados por vírgula)", value=",".join(lista_padrao))
+    entrada = st.text_area(f"{nome} (separados por vírgula)", value=",".join(lista))
     lista = [x.strip() for x in entrada.split(",") if x.strip()]
     st.session_state[f"lista_{key}"] = lista
     return len(lista) > 0  # Retorna True se já tem dados
@@ -112,10 +112,8 @@ def exibir_dashboard(df):
         st.bar_chart(df.groupby("cod_unidade")['valor'].sum())
 
 # -----------------------------
-# Wizard passo a passo
+# Expander de Observações
 # -----------------------------
-
-# Expander de Observações (minimizado)
 with st.expander("Observações da função", expanded=False):
     st.info("""
         - Gera documentos fictícios de entradas e saídas financeiras.
@@ -124,59 +122,72 @@ with st.expander("Observações da função", expanded=False):
         - Datas identificam vencimento; liquidação pode ser aleatória.
     """)
 
-# Função para avançar passo sem usar experimental_rerun
-def avancar_step():
-    st.session_state.step += 1
-
+# -----------------------------
+# Wizard passo a passo com on_click
+# -----------------------------
 # Passo 0 - Período
 if st.session_state.step == 0:
     st.markdown("### 📅 Selecionar Período")
     data_inicio = st.date_input("Data inicial", value=st.session_state.data_inicio)
     data_fim = st.date_input("Data final", value=st.session_state.data_fim)
-    st.session_state.data_inicio = data_inicio
-    st.session_state.data_fim = data_fim
-    if data_fim >= data_inicio:
-        if st.button("Próximo: Unidades"):
-            avancar_step()
-    else:
+    
+    if data_fim < data_inicio:
         st.error("A data final não pode ser menor que a inicial!")
+    else:
+        def avancar_periodo():
+            st.session_state.data_inicio = data_inicio
+            st.session_state.data_fim = data_fim
+            st.session_state.step += 1
+
+        st.button("Próximo: Unidades", on_click=avancar_periodo)
 
 # Passo 1 - Unidades
 elif st.session_state.step == 1:
     preenchido = atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
-    if preenchido and st.button("Próximo: Classificações"):
-        avancar_step()
+    if preenchido:
+        def avancar_unidades():
+            st.session_state.step += 1
+        st.button("Próximo: Classificações", on_click=avancar_unidades)
 
 # Passo 2 - Classificações
 elif st.session_state.step == 2:
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
-    if entradas_ok and saidas_ok and st.button("Próximo: Tesouraria"):
-        avancar_step()
+    if entradas_ok and saidas_ok:
+        def avancar_classificacoes():
+            st.session_state.step += 1
+        st.button("Próximo: Tesouraria", on_click=avancar_classificacoes)
 
 # Passo 3 - Tesouraria
 elif st.session_state.step == 3:
     preenchido = atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
-    if preenchido and st.button("Próximo: Centro de Custo"):
-        avancar_step()
+    if preenchido:
+        def avancar_tesouraria():
+            st.session_state.step += 1
+        st.button("Próximo: Centro de Custo", on_click=avancar_tesouraria)
 
 # Passo 4 - Centro de Custo
 elif st.session_state.step == 4:
     preenchido = atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
-    if preenchido and st.button("Próximo: Tipos de Documento"):
-        avancar_step()
+    if preenchido:
+        def avancar_cc():
+            st.session_state.step += 1
+        st.button("Próximo: Tipos de Documento", on_click=avancar_cc)
 
 # Passo 5 - Tipos de Documento
 elif st.session_state.step == 5:
     preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
-    if preenchido and st.button("Próximo: Gerar CSV"):
-        avancar_step()
+    if preenchido:
+        def avancar_tipos():
+            st.session_state.step += 1
+        st.button("Próximo: Gerar CSV", on_click=avancar_tipos)
 
 # Passo 6 - Gerar CSV
 elif st.session_state.step == 6:
     st.markdown("### 💾 Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
-    if st.button("Gerar CSV"):
+    
+    def gerar_csv():
         registros = gerar_registros_csv(num_registros)
         df = pd.DataFrame(registros, columns=[
             "documento","tipo","valor","cod_unidade","data_venc","data_liq",
@@ -185,7 +196,6 @@ elif st.session_state.step == 6:
         st.session_state.registros_gerados = df
         st.success(f"CSV gerado com {len(registros)} registros!")
 
-        # Download CSV corrigido
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False)
         st.download_button(
@@ -196,3 +206,5 @@ elif st.session_state.step == 6:
         )
 
         exibir_dashboard(df)
+
+    st.button("Gerar CSV", on_click=gerar_csv)
