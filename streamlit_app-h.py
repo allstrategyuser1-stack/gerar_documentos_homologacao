@@ -99,43 +99,40 @@ if "aba_ativa" not in st.session_state:
 st.sidebar.markdown(
     """
     <style>
-    /* Força os botões do menu lateral a terem largura total e tamanho consistente */
-    .menu-botao {
-        display: block;
-        width: 100%;                 /* ocupa toda a largura da sidebar */
-        box-sizing: border-box;      /* inclui bordas e padding na largura total */
-        text-align: center;          /* centraliza o texto */
-        padding: 12px 10px;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        font-weight: 500;
-        color: #444;
-        background-color: #f5f5f5;
-        border: 1px solid #ddd;
-        transition: all 0.2s ease-in-out;
-        cursor: pointer;
+    /* Faz todos os botões da sidebar ocuparem 100% da largura */
+    [data-testid="stSidebar"] button {
+        width: 100% !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        text-align: center !important;
+        border-radius: 8px !important;
+        margin-bottom: 8px !important;
+        font-weight: 500 !important;
+        color: #444 !important;
+        background-color: #f5f5f5 !important;
+        border: 1px solid #ddd !important;
+        height: 45px !important;
+        transition: all 0.2s ease-in-out !important;
     }
 
-    .menu-botao:hover {
-        background-color: #ffe082;   /* dourado claro ao passar o mouse */
+    /* Efeito hover */
+    [data-testid="stSidebar"] button:hover {
+        background-color: #ffe082 !important;
+        border-color: #d4af37 !important;
+        color: black !important;
     }
 
+    /* Botão ativo (aquele da aba atual) */
     .menu-ativo {
-        background-color: #FFD700 !important; /* dourado */
+        background-color: #FFD700 !important;
         color: black !important;
         font-weight: 700 !important;
-        border: 1px solid #d4af37;
+        border: 1px solid #d4af37 !important;
     }
 
-    /* Remove margem interna padrão da barra lateral */
+    /* Ajuste da margem interna da sidebar */
     section[data-testid="stSidebar"] > div:first-child {
         padding: 0 10px;
-    }
-
-    /* Faz todos os botões ficarem iguais em altura */
-    .menu-botao, .menu-ativo {
-        height: 45px;
-        line-height: 20px;
     }
     </style>
     """,
@@ -144,12 +141,23 @@ st.sidebar.markdown(
 
 # Cria botões de navegação clicáveis
 for item in menu_itens:
-    if item == st.session_state["aba_ativa"]:
-        st.sidebar.markdown(f"<div class='menu-botao menu-ativo'>{item}</div>", unsafe_allow_html=True)
-    else:
-        if st.sidebar.button(item):
-            st.session_state["aba_ativa"] = item
-            st.rerun()
+    if st.sidebar.button(item, key=item):
+        st.session_state["aba_ativa"] = item
+        st.rerun()
+
+# Deixa o botão ativo com classe especial
+st.markdown(f"""
+    <style>
+    [data-testid="stSidebar"] button[kind="secondary"][aria-pressed="true"],
+    [data-testid="stSidebar"] button[kind="primary"][aria-pressed="true"],
+    [data-testid="stSidebar"] button:focus {{
+        background-color: #FFD700 !important;
+        border: 1px solid #d4af37 !important;
+        color: black !important;
+        font-weight: 700 !important;
+    }}
+    </style>
+""", unsafe_allow_html=True)
 
 # A aba ativa passa a ser:
 opcao = st.session_state["aba_ativa"]
