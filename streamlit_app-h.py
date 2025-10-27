@@ -5,14 +5,101 @@ import io
 import pandas as pd
 from datetime import datetime, timedelta
 
-# ---------------------------
-# Configuração da página
-# ---------------------------
+# ---------------------------------------------
+# Configuração inicial
+# ---------------------------------------------
 st.set_page_config(page_title="Gerador de documentos fictícios (Fluxo)", layout="wide")
+st.title("Gerador de documentos fictícios (Fluxo) (v2.0.0)")
 
-# ---------------------------
+# ---------------------------------------------
+# Botão lateral para reset
+# ---------------------------------------------
+if st.sidebar.button("🔁 Resetar todos os dados"):
+    st.session_state.clear()
+    st.experimental_rerun()
+
+# ---------------------------------------------
+# Inicialização do session_state
+# ---------------------------------------------
+def init_state(key, default):
+    if key not in st.session_state:
+        st.session_state[key] = default
+
+# Inicializa estados
+init_state("data_inicio", datetime(2025, 1, 1))
+init_state("data_fim", datetime(2025, 12, 31))
+init_state("lista_unidades", [])
+init_state("entradas_codigos", [])
+init_state("saidas_codigos", [])
+init_state("lista_tesouraria", [])
+init_state("lista_cc", [])
+init_state("lista_tipos", [])
+
+# ---------------------------------------------
+# Menu lateral
+# ---------------------------------------------
+menu_itens = [
+    "Observações da função",
+    "Período",
+    "Unidades",
+    "Classificações",
+    "Tesouraria",
+    "Centro de Custo (Opcional)",
+    "Tipos de Documento (Opcional)",
+    "Gerar CSV"
+]
+
+# Determina aba ativa a partir do query param
+query_params = st.query_params
+aba_query = query_params.get("aba", [menu_itens[0]])[0]
+if aba_query not in menu_itens:
+    aba_query = menu_itens[0]
+st.session_state.setdefault("aba_ativa", aba_query)
+opcao = st.session_state["aba_ativa"]
+
+# ---------------------------------------------
+# Menu lateral com CSS
+# ---------------------------------------------
+st.sidebar.markdown("""
+    <style>
+    .menu-botao {
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #444;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        text-align: left;
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        text-decoration: none;
+    }
+    .menu-botao:hover {
+        background-color: #ffe082;
+    }
+    .menu-ativo {
+        background-color: #FFD700 !important;
+        color: black !important;
+        font-weight: 700 !important;
+        border: 1px solid #d4af37;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+for item in menu_itens:
+    href = f"?aba={item.replace(' ', '%20')}"
+    if item == opcao:
+        st.sidebar.markdown(f"<a class='menu-botao menu-ativo' href='{href}'>{item}</a>", unsafe_allow_html=True)
+    else:
+        st.sidebar.markdown(f"<a class='menu-botao' href='{href}'>{item}</a>", unsafe_allow_html=True)
+
+# ---------------------------------------------
 # Função para gerar templates XLSX
-# ---------------------------
+# ---------------------------------------------
 def gerar_template_xlsx(tipo):
     output = io.BytesIO()
     if tipo == "entrada":
@@ -36,403 +123,187 @@ def gerar_template_xlsx(tipo):
     else:
         df = pd.DataFrame()
         sheet_name = "Sheet1"
-
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name=sheet_name)
     output.seek(0)
     return output.getvalue()
 
-# ---------------------------
-# Menu / abas
-# ---------------------------
-menu_itens = [
-    "Observações da função",
-    "Período",
-    "Unidades",
-    "Classificações",
-    "Tesouraria",
-    "Centro de Custo (Opcional)",
-    "Tipos de Documento (Opcional)",
-    "Gerar CSV"
-]
+# ---------------------------------------------
+# Funções auxiliares
+# ---------------------------------------------
+def random_date(start, end):
+    delta = end - start
+    return start + timedelta(days=random.randint(0, delta.days))
 
-# ---------------------------
-# CSS para tornar os "links" bonitos e full-width
-# ---------------------------
-st.sidebar.markdown(
-    """
-    <style>
-    /* container para o menu */
-    .my-menu { padding: 4px; }
-    .my-menu a {
-        display: block;
-        width: 100%;
-        padding: 10px 12px;
-        margin-bottom: 6px;
-        border-radius: 8px;
-        text-decoration: none;
-        color: #333;
-        font-weight: 500;
-        background-color: #f5f5f5;
-        border: 1px solid #ddd;
-        box-sizing: border-box;
-    }
-    .my-menu a:hover {
-        background-color: #ffe082;
-        border-color: #d4af37;
-    }
-    .my-menu a.active {
-        background-color: #FFD700 !important;
-        color: #000 !important;
-        font-weight: 700;
-        border: 1px solid #d4af37;
-    }
-    /* garante que o sidebar container use todo o width disponível */
-    .css-1d391kg { padding-top: 0.5rem; } /* ajuste fino se necessário (pode depender da versão do Streamlit) */
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+def random_payment_date(due_date):
+    if random.random() < 0.5:
+        shift = random.randint(-5, 5)
+        return due_date + timedelta(days=shift)
+    else:
+        return ""
 
-# ---------------------------
-# Determina aba ativa a partir do query param (se houver)
-# ---------------------------
-query_params = st.experimental_get_query_params()
-aba_query = None
-if "aba" in query_params and query_params["aba"]:
-    aba_query = query_params["aba"][0]
-if aba_query not in menu_itens:
-    # valor default
-    aba_query = menu_itens[0]
+def random_valor():
+    return round(random.uniform(1, 101000), 2)
 
-# Armazena em session_state para uso consistente
-st.session_state.setdefault("aba_ativa", aba_query)
-# Se a query difere do estado, atualiza estado
-if st.session_state["aba_ativa"] != aba_query:
-    st.session_state["aba_ativa"] = aba_query
-
-# ---------------------------
-# Renderiza o menu lateral como links (cada link adiciona ?aba=Nome+da+Aba)
-# ---------------------------
-with st.sidebar:
-    st.title("Navegação")
-    st.markdown("<div class='my-menu'>", unsafe_allow_html=True)
-    for item in menu_itens:
-        # cria href com parâmetro URL. o nome é urlencoded automaticamente no navegador
-        href = f"?aba={item}"
-        classe = "active" if item == st.session_state["aba_ativa"] else ""
-        st.markdown(f"<a class='{classe}' href='{href}'>{item}</a>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# Se o usuário clicou num link, o app recarrega e a query param define a aba. 
-# Atualizamos session_state com o valor atual da query (garantia).
-query_params = st.experimental_get_query_params()
-if "aba" in query_params and query_params["aba"]:
-    requested = query_params["aba"][0]
-    if requested in menu_itens:
-        st.session_state["aba_ativa"] = requested
-
-# ---------------------------
-# Cabeçalho principal
-# ---------------------------
-st.title("Gerador de documentos fictícios (Fluxo) (v2.0.0)")
-st.write(f"**Aba ativa:** {st.session_state['aba_ativa']}")
-
-# ---------------------------
-# Conteúdo das abas
-# ---------------------------
-# Observações
-if st.session_state["aba_ativa"] == "Observações da função":
-    st.markdown(
-        """
-        <div style='text-align: justify; font-size:16px; border:1px solid #ddd; border-radius:10px; padding:15px; background-color:#f9f9f9;'>
-            <h3 style='text-align:center; color:#333;'>📝 Observações sobre a função</h3>
+# ---------------------------------------------
+# Abas
+# ---------------------------------------------
+if opcao == "Observações da função":
+    st.markdown("""
+    <div style="text-align: justify; font-size:18px; border:1px solid #ddd; border-radius:10px; padding:15px; background-color:#f9f9f9;">
+        <h3 style="text-align:center; color:#333;">Observações sobre a função</h3>
         <ul>
-            <li>A função gera documentos fictícios de entradas e saídas financeiras com base nos parâmetros definidos.</li>
-            <li>O campo de unidade deve ser preenchido com os códigos cadastrados no Fluxo e as unidades identificadas serão utilizadas de forma aleatória para cada documento.</li>
-            <li>O campo de classificações pode ser preenchido pelos templates (download/upload) ou manualmente.</li>
-            <li>O período de geração é determinado pelas datas inicial e final informadas.</li>
-            <li>As datas informadas identificam o período de <b>vencimento</b> dos documentos, a data de liquidação é aleatória e alguns documentos terão a data de liquidação em branco para simular atrasados ou previstos.</li>
+            <li>Gera documentos fictícios de entradas e saídas financeiras.</li>
+            <li>Campo de unidade preenchido com códigos cadastrados.</li>
+            <li>Classificações podem ser preenchidas via template ou manualmente.</li>
+            <li>Período definido pelas datas inicial e final.</li>
+            <li>Datas de vencimento e liquidação simuladas aleatoriamente.</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
 
-# Período
-elif st.session_state["aba_ativa"] == "Período":
+elif opcao == "Período":
     st.header("Selecionar período dos registros")
     col1, col2 = st.columns(2)
     with col1:
-        data_inicio_str = st.text_input("Data inicial (dd/mm/aaaa)", value="01/01/2025", key="input_data_inicio")
+        data_inicio_str = st.text_input("Data inicial (dd/mm/aaaa)", value=st.session_state.data_inicio.strftime("%d/%m/%Y"))
         try:
-            data_inicio = datetime.strptime(data_inicio_str, "%d/%m/%Y")
-        except Exception:
-            st.error("Formato de data inicial inválido! Use dd/mm/aaaa")
-            st.stop()
+            st.session_state.data_inicio = datetime.strptime(data_inicio_str, "%d/%m/%Y")
+        except:
+            st.error("Formato de data inicial inválido!")
     with col2:
-        data_fim_str = st.text_input("Data final (dd/mm/aaaa)", value="31/12/2025", key="input_data_fim")
+        data_fim_str = st.text_input("Data final (dd/mm/aaaa)", value=st.session_state.data_fim.strftime("%d/%m/%Y"))
         try:
-            data_fim = datetime.strptime(data_fim_str, "%d/%m/%Y")
-        except Exception:
-            st.error("Formato de data final inválido! Use dd/mm/aaaa")
-            st.stop()
-    # guarda em session para uso posterior
-    st.session_state["data_inicio"] = data_inicio
-    st.session_state["data_fim"] = data_fim
+            st.session_state.data_fim = datetime.strptime(data_fim_str, "%d/%m/%Y")
+        except:
+            st.error("Formato de data final inválido!")
 
-# Unidades
-elif st.session_state["aba_ativa"] == "Unidades":
+elif opcao == "Unidades":
     st.header("Identificação de Unidades")
     col1, col2 = st.columns(2)
     with col1:
-        st.download_button(
-            "📥 Baixar modelo de Unidades (XLSX)",
-            data=gerar_template_xlsx("unidades"),
-            file_name="unidades_template.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        st.download_button("Baixar modelo (XLSX)", gerar_template_xlsx("unidades"), file_name="unidades_template.xlsx")
     with col2:
-        arquivo_unidades = st.file_uploader("Importar arquivo de Unidades", type=["xlsx"])
-    lista_unidades = []
-    if arquivo_unidades:
-        try:
-            df_unidades = pd.read_excel(arquivo_unidades)
-            if "codigo" in df_unidades.columns:
-                lista_unidades = df_unidades["codigo"].dropna().astype(str).tolist()
-                st.success(f"{len(lista_unidades)} unidades importadas.")
-                st.dataframe(df_unidades, use_container_width=True)
-            else:
-                st.error("Arquivo de unidades deve ter coluna 'codigo'.")
-        except Exception as e:
-            st.error(f"Erro ao ler arquivo de unidades: {e}")
+        arquivo = st.file_uploader("Importar arquivo de Unidades", type=["xlsx"])
+    if arquivo:
+        df = pd.read_excel(arquivo)
+        if "codigo" in df.columns:
+            st.session_state.lista_unidades = df["codigo"].dropna().astype(str).tolist()
+            st.success(f"{len(st.session_state.lista_unidades)} unidades importadas.")
+            st.dataframe(df)
+        else:
+            st.error("Coluna 'codigo' não encontrada.")
     else:
-        unidades_input = st.text_area("Lista de unidades (separadas por vírgula)", value="01,02,03")
-        lista_unidades = [u.strip() for u in unidades_input.split(",") if u.strip()]
-    st.session_state["lista_unidades"] = lista_unidades
+        val = st.text_area("Lista de unidades (separadas por vírgula)", value="01,02,03")
+        st.session_state.lista_unidades = [v.strip() for v in val.split(",") if v.strip()]
 
-# Classificações
-elif st.session_state["aba_ativa"] == "Classificações":
+elif opcao == "Classificações":
     st.header("Importar Classificações")
-    col_esq, col_vline, col_dir = st.columns([48, 1, 48])
-    with col_esq:
+    col1, col2 = st.columns([48, 48])
+    with col1:
         st.subheader("Entradas")
-        st.download_button(
-            "📥 Baixar modelo de Entradas",
-            data=gerar_template_xlsx("entrada"),
-            file_name="classificacoes_entrada.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        arquivo_entradas = st.file_uploader("Importar lista de classificações de Entrada", type=["xlsx"])
-    col_vline.markdown("""<div style="border-left:2px solid #CCC; height:240px; margin-left:50%;"></div>""",
-                       unsafe_allow_html=True)
-    with col_dir:
+        st.download_button("Modelo Entrada", gerar_template_xlsx("entrada"), file_name="entrada.xlsx")
+        arq_e = st.file_uploader("Importar Entradas", type=["xlsx"])
+        if arq_e:
+            df = pd.read_excel(arq_e)
+            if {"codigo", "nome"}.issubset(df.columns):
+                st.session_state.entradas_codigos = df["codigo"].dropna().astype(str).tolist()
+                st.dataframe(df)
+            else:
+                st.error("Colunas 'codigo' e 'nome' obrigatórias.")
+        else:
+            val = st.text_area("Entradas (separadas por vírgula)", value="E001,E002")
+            st.session_state.entradas_codigos = [v.strip() for v in val.split(",") if v.strip()]
+    with col2:
         st.subheader("Saídas")
-        st.download_button(
-            "📥 Baixar modelo de Saídas",
-            data=gerar_template_xlsx("saida"),
-            file_name="classificacoes_saida.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        arquivo_saidas = st.file_uploader("Importar lista de classificações de Saída", type=["xlsx"])
-
-    entradas_codigos, saidas_codigos = [], []
-    if arquivo_entradas is not None:
-        try:
-            df_entradas = pd.read_excel(arquivo_entradas)
-            if {"codigo", "nome"}.issubset(df_entradas.columns):
-                entradas_codigos = df_entradas["codigo"].dropna().astype(str).tolist()
-                st.success(f"{len(entradas_codigos)} classificações de Entrada importadas.")
-                st.dataframe(df_entradas, use_container_width=True)
+        st.download_button("Modelo Saída", gerar_template_xlsx("saida"), file_name="saida.xlsx")
+        arq_s = st.file_uploader("Importar Saídas", type=["xlsx"])
+        if arq_s:
+            df = pd.read_excel(arq_s)
+            if {"codigo", "nome"}.issubset(df.columns):
+                st.session_state.saidas_codigos = df["codigo"].dropna().astype(str).tolist()
+                st.dataframe(df)
             else:
-                st.error("Arquivo de entradas deve ter colunas 'codigo' e 'nome'.")
-        except Exception as e:
-            st.error(f"Erro ao ler arquivo de entradas: {e}")
-    if arquivo_saidas is not None:
-        try:
-            df_saidas = pd.read_excel(arquivo_saidas)
-            if {"codigo", "nome"}.issubset(df_saidas.columns):
-                saidas_codigos = df_saidas["codigo"].dropna().astype(str).tolist()
-                st.success(f"{len(saidas_codigos)} classificações de Saída importadas.")
-                st.dataframe(df_saidas, use_container_width=True)
-            else:
-                st.error("Arquivo de saídas deve ter colunas 'codigo' e 'nome'.")
-        except Exception as e:
-            st.error(f"Erro ao ler arquivo de saídas: {e}")
-    # fallback manual
-    if not entradas_codigos:
-        entradas_input = st.text_area("Classificações de Entrada (separadas por vírgula)", value="E001,E002,E003")
-        entradas_codigos = [e.strip() for e in entradas_input.split(",") if e.strip()]
-    if not saidas_codigos:
-        saidas_input = st.text_area("Classificações de Saída (separadas por vírgula)", value="S001,S002,S003")
-        saidas_codigos = [s.strip() for s in saidas_input.split(",") if s.strip()]
-    st.session_state["entradas_codigos"] = entradas_codigos
-    st.session_state["saidas_codigos"] = saidas_codigos
+                st.error("Colunas 'codigo' e 'nome' obrigatórias.")
+        else:
+            val = st.text_area("Saídas (separadas por vírgula)", value="S001,S002")
+            st.session_state.saidas_codigos = [v.strip() for v in val.split(",") if v.strip()]
 
-# Tesouraria
-elif st.session_state["aba_ativa"] == "Tesouraria":
+elif opcao == "Tesouraria":
     st.header("Identificação da Tesouraria")
     col1, col2 = st.columns(2)
     with col1:
-        st.download_button(
-            "📥 Baixar modelo de Tesouraria",
-            data=gerar_template_xlsx("tesouraria"),
-            file_name="tesouraria_template.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        st.download_button("Modelo Tesouraria", gerar_template_xlsx("tesouraria"), file_name="tesouraria.xlsx")
     with col2:
-        arquivo_tesouraria = st.file_uploader("Importar Tesouraria", type=["xlsx"])
-    lista_tesouraria = []
-    if arquivo_tesouraria:
-        try:
-            df_tes = pd.read_excel(arquivo_tesouraria)
-            if "codigo" in df_tes.columns:
-                lista_tesouraria = df_tes["codigo"].dropna().astype(str).tolist()
-                st.success(f"{len(lista_tesouraria)} contas de tesouraria importadas.")
-                st.dataframe(df_tes, use_container_width=True)
-            else:
-                st.error("Arquivo de tesouraria deve ter coluna 'codigo'.")
-        except Exception as e:
-            st.error(f"Erro ao ler arquivo de tesouraria: {e}")
+        arq = st.file_uploader("Importar Tesouraria", type=["xlsx"])
+    if arq:
+        df = pd.read_excel(arq)
+        if "codigo" in df.columns:
+            st.session_state.lista_tesouraria = df["codigo"].dropna().astype(str).tolist()
+            st.dataframe(df)
+        else:
+            st.error("Coluna 'codigo' obrigatória.")
     else:
-        tes_input = st.text_area("Contas de Tesouraria (separadas por vírgula)", value="T001,T002")
-        lista_tesouraria = [t.strip() for t in tes_input.split(",") if t.strip()]
-    st.session_state["lista_tesouraria"] = lista_tesouraria
+        val = st.text_area("Contas Tesouraria (separadas por vírgula)", value="T001,T002")
+        st.session_state.lista_tesouraria = [v.strip() for v in val.split(",") if v.strip()]
 
-# Centro de Custo
-elif st.session_state["aba_ativa"] == "Centro de Custo (Opcional)":
-    st.header("Centro de Custo (Opcional)")
+elif opcao == "Centro de Custo (Opcional)":
+    st.header("Centro de Custo")
     col1, col2 = st.columns(2)
     with col1:
-        st.download_button(
-            "📥 Baixar modelo de Centro de Custo",
-            data=gerar_template_xlsx("centro_custo"),
-            file_name="centro_custo_template.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        st.download_button("Modelo Centro de Custo", gerar_template_xlsx("centro_custo"), file_name="cc.xlsx")
     with col2:
-        arquivo_cc = st.file_uploader("Importar Centro de Custo", type=["xlsx"])
-    lista_cc = []
-    if arquivo_cc:
-        try:
-            df_cc = pd.read_excel(arquivo_cc)
-            if "codigo" in df_cc.columns:
-                lista_cc = df_cc["codigo"].dropna().astype(str).tolist()
-                st.success(f"{len(lista_cc)} centros de custo importados.")
-                st.dataframe(df_cc, use_container_width=True)
-            else:
-                st.error("Arquivo de centro de custo deve ter coluna 'codigo'.")
-        except Exception as e:
-            st.error(f"Erro ao ler arquivo de centro de custo: {e}")
+        arq = st.file_uploader("Importar Centro de Custo", type=["xlsx"])
+    if arq:
+        df = pd.read_excel(arq)
+        if "codigo" in df.columns:
+            st.session_state.lista_cc = df["codigo"].dropna().astype(str).tolist()
+            st.dataframe(df)
+        else:
+            st.error("Coluna 'codigo' obrigatória.")
     else:
-        cc_input = st.text_area("Centros de Custo (separados por vírgula)", value="CC01,CC02")
-        lista_cc = [c.strip() for c in cc_input.split(",") if c.strip()]
-    st.session_state["lista_cc"] = lista_cc
+        val = st.text_area("Centros de Custo (separadas por vírgula)", value="CC01,CC02")
+        st.session_state.lista_cc = [v.strip() for v in val.split(",") if v.strip()]
 
-# Tipos de Documento
-elif st.session_state["aba_ativa"] == "Tipos de Documento (Opcional)":
-    st.header("Tipos de Documento (Opcional)")
+elif opcao == "Tipos de Documento (Opcional)":
+    st.header("Tipos de Documento")
     col1, col2 = st.columns(2)
     with col1:
-        st.download_button(
-            "📥 Baixar modelo de Tipos de Documento",
-            data=gerar_template_xlsx("tipos_doc"),
-            file_name="tipos_documento_template.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        st.download_button("Modelo Tipos", gerar_template_xlsx("tipos_doc"), file_name="tipos.xlsx")
     with col2:
-        arquivo_tipos = st.file_uploader("Importar Tipos de Documento", type=["xlsx"])
-    lista_tipos = []
-    if arquivo_tipos:
-        try:
-            df_tipos = pd.read_excel(arquivo_tipos)
-            if "codigo" in df_tipos.columns:
-                lista_tipos = df_tipos["codigo"].dropna().astype(str).tolist()
-                st.success(f"{len(lista_tipos)} tipos de documento importados.")
-                st.dataframe(df_tipos, use_container_width=True)
-            else:
-                st.error("Arquivo de tipos deve ter coluna 'codigo'.")
-        except Exception as e:
-            st.error(f"Erro ao ler arquivo de tipos: {e}")
+        arq = st.file_uploader("Importar Tipos de Documento", type=["xlsx"])
+    if arq:
+        df = pd.read_excel(arq)
+        if "codigo" in df.columns:
+            st.session_state.lista_tipos = df["codigo"].dropna().astype(str).tolist()
+            st.dataframe(df)
+        else:
+            st.error("Coluna 'codigo' obrigatória.")
     else:
-        tipos_input = st.text_area("Tipos de Documento (separados por vírgula)", value="NF,REC")
-        lista_tipos = [t.strip() for t in tipos_input.split(",") if t.strip()]
-    st.session_state["lista_tipos"] = lista_tipos
+        val = st.text_area("Tipos de Documento (separadas por vírgula)", value="NF,REC")
+        st.session_state.lista_tipos = [v.strip() for v in val.split(",") if v.strip()]
 
-# Gerar CSV
-elif st.session_state["aba_ativa"] == "Gerar CSV":
+elif opcao == "Gerar CSV":
     st.header("Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
-
-    # tenta obter periodo salvo
-    data_inicio = st.session_state.get("data_inicio", datetime(2025,1,1))
-    data_fim = st.session_state.get("data_fim", datetime(2025,12,31))
-
-    def random_date(start, end):
-        delta = end - start
-        return start + timedelta(days=random.randint(0, delta.days))
-
-    def random_payment_date(due_date):
-        if random.random() < 0.5:
-            shift = random.randint(-5, 5)
-            return due_date + timedelta(days=shift)
-        else:
-            return ""
-
-    def random_valor():
-        return round(random.uniform(1, 101000), 2)
-
-    # recupera listas salvas (ou defaults)
-    lista_unidades = st.session_state.get("lista_unidades", ["01","02","03"])
-    entradas_codigos = st.session_state.get("entradas_codigos", ["E001","E002","E003"])
-    saidas_codigos = st.session_state.get("saidas_codigos", ["S001","S002","S003"])
-    lista_tesouraria = st.session_state.get("lista_tesouraria", ["T001","T002"])
-    lista_cc = st.session_state.get("lista_cc", [""])
-    lista_tipos = st.session_state.get("lista_tipos", [""])
-
-    registros = []
-    id_counter = 1
-
     if st.button("Gerar CSV"):
-        while len(registros) < num_registros:
+        registros = []
+        for i in range(1, num_registros + 1):
             tipo = random.choice(["E", "S"])
-            descricao = random.choice(entradas_codigos) if tipo == "E" else random.choice(saidas_codigos)
+            descricao = random.choice(st.session_state.entradas_codigos if tipo=="E" else st.session_state.saidas_codigos)
             valor = random_valor()
-            vencimento = random_date(data_inicio, data_fim)
-            pagamento = random_payment_date(vencimento)
-            venc_str = vencimento.strftime("%d/%m/%Y")
-            pagamento_str = pagamento.strftime("%d/%m/%Y") if pagamento != "" else ""
-            cliente_fornecedor = f"C{random.randint(1,50)}" if tipo == "E" else f"F{random.randint(1,50)}"
-            cod_unidade = random.choice(lista_unidades)
-            tes = random.choice(lista_tesouraria) if lista_tesouraria else ""
-            cc_val = random.choice(lista_cc) if lista_cc else ""
-            tipo_doc = random.choice(lista_tipos) if lista_tipos else ""
-
+            venc = random_date(st.session_state.data_inicio, st.session_state.data_fim)
+            pag = random_payment_date(venc)
             registros.append([
-                id_counter, tipo, valor, cod_unidade, venc_str, pagamento_str,
-                descricao, cliente_fornecedor, tes, cc_val, tipo_doc
+                i, tipo, valor, random.choice(st.session_state.lista_unidades or ["01","02","03"]),
+                venc.strftime("%d/%m/%Y"), pag.strftime("%d/%m/%Y") if pag else "",
+                descricao,
+                f"C{random.randint(1,50)}" if tipo=="E" else f"F{random.randint(1,50)}",
+                random.choice(st.session_state.lista_tesouraria or ["T001","T002"]),
+                random.choice(st.session_state.lista_cc or [""]),
+                random.choice(st.session_state.lista_tipos or [""])
             ])
-            id_counter += 1
-
-        csv_file = "documentos.csv"
-        with open(csv_file, "w", newline="", encoding="utf-8-sig") as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                "documento", "tipo", "valor", "cod_unidade", "data_venc",
-                "data_liq", "descricao", "cliente_fornecedor",
-                "tesouraria", "centro_custo", "tipo_documento"
-            ])
-            writer.writerows(registros)
-
-        st.success(f"CSV gerado com {len(registros)} registros!")
-        st.download_button("📄 Download do arquivo gerado", open(csv_file, "rb"), file_name="documentos.csv")
-
-# ---------------------------
-# Observação final: como navegar
-# ---------------------------
-st.markdown(
-    """
-    <small>
-    Navegue pelo menu lateral. Quando você clica em uma aba, a URL recebe `?aba=Nome+da+Aba` e a página é recarregada na mesma guia, mantendo a navegação simples e sem abrir novas janelas.
-    </small>
-    """,
-    unsafe_allow_html=True
-)
+        df = pd.DataFrame(registros, columns=["documento","tipo","valor","cod_unidade","data_venc","data_liq",
+                                              "descricao","cliente_fornecedor","tesouraria","centro_custo","tipo_documento"])
+        st.download_button("Download CSV", df.to_csv(index=False).encode("utf-8-sig"), file_name="documentos.csv")
+        st.success(f"{len(registros)} registros gerados!")
