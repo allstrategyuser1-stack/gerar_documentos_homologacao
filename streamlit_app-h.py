@@ -191,7 +191,6 @@ elif step == 6:
     st.markdown("### 💾 Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
 
-    # Função para gerar CSV e atualizar session_state
     def gerar_csv():
         registros = gerar_registros_csv(num_registros)
         df = pd.DataFrame(registros, columns=[
@@ -206,8 +205,15 @@ elif step == 6:
         df.to_csv(csv_buffer, index=False)
         st.download_button("📥 Download CSV", data=csv_buffer.getvalue(), file_name="documentos.csv", mime="text/csv")
 
-        # Mini-dashboard (sem gráfico por unidade)
-        exibir_dashboard(df)
+        # Mini-dashboard com valores separados por Entradas e Saídas, abaixo do botão
+        st.subheader("📊 Dashboard de Valores")
+        entradas_valor = df[df['tipo']=='E']['valor'].sum()
+        saidas_valor = df[df['tipo']=='S']['valor'].sum()
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Valor total Entradas", f"R$ {entradas_valor:,.2f}")
+        with col2:
+            st.metric("Valor total Saídas", f"R$ {saidas_valor:,.2f}")
 
-    # Botão amarelo claro
+    # Botão amarelo claro para gerar CSV
     st.button("Gerar CSV", on_click=gerar_csv)
