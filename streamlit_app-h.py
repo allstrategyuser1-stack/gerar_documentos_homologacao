@@ -44,6 +44,24 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # -----------------------------
+# CSS para cards das etapas
+# -----------------------------
+st.markdown("""
+<style>
+.card-step {
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.card-step h3 {
+    margin-top: 0;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
 # Funções auxiliares
 # -----------------------------
 def gerar_template_xlsx(tipo):
@@ -67,38 +85,38 @@ def gerar_template_xlsx(tipo):
     output.seek(0)
     return output.getvalue()
 
-def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
-    st.markdown(f"### {nome}")
+def atualizar_lista_card(nome, lista_padrao, tipo_arquivo, key):
     lista = lista_padrao.copy()
     
-    # Botão de download e uploader lado a lado
-    col1, col2 = st.columns([1,1])
-    with col1:
-        st.download_button(
-            f"📥 Modelo {nome}", 
-            data=gerar_template_xlsx(tipo_arquivo), 
-            file_name=f"{nome}_template.xlsx", 
-            key=f"dl_{nome}"
-        )
-    with col2:
-        arquivo = st.file_uploader(f"Importar {nome}", type=["xlsx"], key=f"upload_{key}")
-        if arquivo:
-            try:
-                df = pd.read_excel(arquivo)
-                if "codigo" in df.columns:
-                    lista = df["codigo"].dropna().astype(str).tolist()
-                    st.success(f"{len(lista)} {nome.lower()} importados!")
-                    st.dataframe(df, use_container_width=True)
-                else:
-                    st.error("Arquivo inválido: coluna 'codigo' não encontrada")
-            except Exception as e:
-                st.error(f"Erro ao ler arquivo: {e}")
+    with st.container():
+        st.markdown(f"<div class='card-step'><h3>{nome}</h3></div>", unsafe_allow_html=True)
+        
+        col1, col2 = st.columns([1,1])
+        with col1:
+            st.download_button(
+                f"📥 Modelo {nome}", 
+                data=gerar_template_xlsx(tipo_arquivo), 
+                file_name=f"{nome}_template.xlsx", 
+                key=f"dl_{nome}"
+            )
+        with col2:
+            arquivo = st.file_uploader(f"Importar {nome}", type=["xlsx"], key=f"upload_{key}")
+            if arquivo:
+                try:
+                    df = pd.read_excel(arquivo)
+                    if "codigo" in df.columns:
+                        lista = df["codigo"].dropna().astype(str).tolist()
+                        st.success(f"{len(lista)} {nome.lower()} importados!")
+                        st.dataframe(df, use_container_width=True)
+                    else:
+                        st.error("Arquivo inválido: coluna 'codigo' não encontrada")
+                except Exception as e:
+                    st.error(f"Erro ao ler arquivo: {e}")
 
-    # Text area logo abaixo, compacta
-    lista_str = ",".join(lista)
-    lista_text = st.text_area(f"{nome} (separados por vírgula)", value=lista_str, height=60)
-    lista = [x.strip() for x in lista_text.split(",") if x.strip()]
-    st.session_state[f"lista_{key}"] = lista
+        lista_str = ",".join(lista)
+        lista_text = st.text_area(f"{nome} (separados por vírgula)", value=lista_str, height=60)
+        lista = [x.strip() for x in lista_text.split(",") if x.strip()]
+        st.session_state[f"lista_{key}"] = lista
     
     return len(lista) > 0
 
@@ -205,9 +223,8 @@ def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
 # -----------------------------
 step = st.session_state.step
 
-# Passo 0 - Período
 if step == 0:
-    st.markdown("### 📅 Selecionar Período")
+    st.markdown("<div class='card-step'><h3>📅 Selecionar Período</h3></div>", unsafe_allow_html=True)
     data_inicio_str = st.text_input("Data inicial", value=st.session_state.data_inicio.strftime("%d/%m/%Y"))
     data_fim_str = st.text_input("Data final", value=st.session_state.data_fim.strftime("%d/%m/%Y"))
 
@@ -237,38 +254,31 @@ if step == 0:
                 }) or avancar_step()
             )
 
-# Passo 1 - Unidades
 elif step == 1:
-    preenchido = atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
+    preenchido = atualizar_lista_card("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
     botoes_step(preenchido, "Próximo: Classificações ➡")
 
-# Passo 2 - Classificações
 elif step == 2:
-    st.markdown("<h2 style='text-align:left; color:#000000;'>Classificações financeiras</h2>", unsafe_allow_html=True)
-    entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
-    saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
+    st.markdown("<div class='card-step'><h3>Classificações Financeiras</h3></div>", unsafe_allow_html=True)
+    entradas_ok = atualizar_lista_card("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
+    saidas_ok = atualizar_lista_card("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     botoes_step(entradas_ok and saidas_ok, "Próximo: Tesouraria ➡")
 
-# Passo 3 - Tesouraria
 elif step == 3:
-    preenchido = atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
+    preenchido = atualizar_lista_card("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
     botoes_step(preenchido, "Próximo: Centro de Custo ➡")
 
-# Passo 4 - Centro de Custo
 elif step == 4:
-    preenchido = atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
+    preenchido = atualizar_lista_card("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
     botoes_step(preenchido, "Próximo: Tipos de Documento ➡")
 
-# Passo 5 - Tipos de Documento
 elif step == 5:
-    preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
+    preenchido = atualizar_lista_card("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
     botoes_step(preenchido, "Próximo: Gerar CSV ➡")
 
-# Passo 6 - Gerar CSV
 elif step == 6:
-    st.markdown("### 💾 Gerar CSV com dados")
+    st.markdown("<div class='card-step'><h3>💾 Gerar CSV com dados</h3></div>", unsafe_allow_html=True)
     num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
-
     botoes_step(preenchido=True, label_proximo="Gerar CSV")
 
     if st.session_state.get("csv_gerado", False):
