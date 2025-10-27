@@ -17,7 +17,7 @@ st.markdown("<h1 style='text-align:center; color:#4B8BBE;'>📄 Gerador de Docum
 st.sidebar.markdown("## 🔧 Configurações")
 if st.sidebar.button("🔁 Resetar todos os dados"):
     st.session_state.clear()
-    st.rerun()
+    st.experimental_rerun()
 
 # ---------------------------------------------
 # Inicialização do session_state
@@ -35,6 +35,7 @@ init_state("lista_tesouraria", ["T001", "T002"])
 init_state("lista_cc", ["CC01", "CC02"])
 init_state("lista_tipos", ["NF", "REC"])
 init_state("aba_ativa", "Observações")
+init_state("registros_gerados", [])
 
 # ---------------------------------------------
 # Funções auxiliares
@@ -104,6 +105,21 @@ def gerar_registros_csv(n):
         ])
     return registros
 
+def exibir_dashboard(df):
+    st.subheader("📊 Resumo do Mini-Dashboard")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        entradas = df[df['tipo']=='E'].shape[0]
+        saídas = df[df['tipo']=='S'].shape[0]
+        st.metric("Entradas", entradas, delta=None)
+        st.metric("Saídas", saídas, delta=None)
+    with col2:
+        total_valor = df['valor'].sum()
+        st.metric("Valor total", f"R$ {total_valor:,.2f}")
+    with col3:
+        st.text("Distribuição por unidade")
+        st.bar_chart(df.groupby("cod_unidade")['valor'].sum())
+
 # ---------------------------------------------
 # Menu lateral
 # ---------------------------------------------
@@ -163,13 +179,13 @@ elif opcao=="Gerar CSV":
         num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
         if st.button("🟢 Gerar CSV"):
             registros = gerar_registros_csv(num_registros)
-            csv_buffer = io.StringIO()
-            writer = csv.writer(csv_buffer)
-            writer.writerow([
+            df = pd.DataFrame(registros, columns=[
                 "documento","tipo","valor","cod_unidade","data_venc","data_liq",
                 "descricao","cliente_fornecedor","tesouraria","centro_custo","tipo_documento"
             ])
-            writer.writerows(registros)
-            csv_buffer.seek(0)
+            st.session_state.registros_gerados = df
             st.success(f"CSV gerado com {len(registros)} registros!")
+            csv_buffer = io.StringIO()
+            df.to_csv(csv_buffer, index=False)
             st.download_button("📥 Download CSV", data=csv_buffer, file_name="documentos.csv", mime="text/csv")
+            exibir_dashboard(df)
