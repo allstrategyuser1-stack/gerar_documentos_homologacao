@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 # ⚙️ CONFIGURAÇÃO INICIAL
 # -------------------------------------------------
 st.set_page_config(page_title="Gerador de documentos fictícios", layout="wide")
-st.markdown("<h1 style='text-align:center; color:#5a7be0;'>Gerador de Documentos Fictícios (Fluxo)</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center; color:#5a7be0;'>Gerador de documentos fictícios (Fluxo)</h1>", unsafe_allow_html=True)
 
 # -------------------------------------------------
 # 🧩 ESTADO INICIAL
