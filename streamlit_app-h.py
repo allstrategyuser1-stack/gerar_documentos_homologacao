@@ -113,7 +113,7 @@ def gerar_registros_csv(n):
 
 def exibir_dashboard(df):
     st.subheader("📊 Mini-Dashboard")
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         entradas = df[df['tipo']=='E'].shape[0]
         saídas = df[df['tipo']=='S'].shape[0]
@@ -122,9 +122,6 @@ def exibir_dashboard(df):
     with col2:
         total_valor = df['valor'].sum()
         st.metric("Valor total", f"R$ {total_valor:,.2f}")
-    with col3:
-        st.text("Distribuição por unidade")
-        st.bar_chart(df.groupby("cod_unidade")['valor'].sum())
 
 # -----------------------------
 # Função para avançar passo
@@ -207,5 +204,3 @@ elif step == 6:
         df.to_csv(csv_buffer, index=False)
         st.download_button("📥 Download CSV", data=csv_buffer.getvalue(), file_name="documentos.csv", mime="text/csv")
         exibir_dashboard(df)
-
-    st.button("Gerar CSV", on_click=gerar_csv)
