@@ -77,9 +77,11 @@ def gerar_template_xlsx(tipo):
     output.seek(0)
     return output.getvalue()
 
-# ---------------------------------------------
+# ============================
 # Menu lateral
-# ---------------------------------------------
+# ============================
+import urllib.parse
+
 menu_itens = [
     "Observações da função",
     "Período",
@@ -91,76 +93,56 @@ menu_itens = [
     "Gerar CSV"
 ]
 
-# Estado inicial do menu
-if "aba_ativa" not in st.session_state:
-    st.session_state["aba_ativa"] = menu_itens[0]
-
-# Renderiza o menu com HTML e CSS
+# CSS para os "botões" (links) ficarem com largura total da sidebar
 st.sidebar.markdown(
     """
     <style>
-    /* Faz todos os botões da sidebar ocuparem 100% da largura */
-    [data-testid="stSidebar"] button {
-        width: 100% !important;
-        display: block !important;
-        box-sizing: border-box !important;
-        text-align: center !important;
-        border-radius: 8px !important;
-        margin-bottom: 8px !important;
-        font-weight: 500 !important;
-        color: #444 !important;
-        background-color: #f5f5f5 !important;
-        border: 1px solid #ddd !important;
-        height: 45px !important;
-        transition: all 0.2s ease-in-out !important;
+    .menu-link {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #333;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        font-weight: 500;
     }
-
-    /* Efeito hover */
-    [data-testid="stSidebar"] button:hover {
-        background-color: #ffe082 !important;
-        border-color: #d4af37 !important;
-        color: black !important;
+    .menu-link:hover {
+        background: #ffe082;
+        color: black;
+        border-color: #d4af37;
     }
-
-    /* Botão ativo (aquele da aba atual) */
-    .menu-ativo {
-        background-color: #FFD700 !important;
-        color: black !important;
-        font-weight: 700 !important;
-        border: 1px solid #d4af37 !important;
+    .menu-link.active {
+        background: #FFD700;
+        color: black;
+        font-weight: 700;
+        border: 1px solid #d4af37;
     }
-
-    /* Ajuste da margem interna da sidebar */
+    /* Garante padding da sidebar para visual consistente */
     section[data-testid="stSidebar"] > div:first-child {
-        padding: 0 10px;
+        padding: 8px;
     }
     </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
-# Cria botões de navegação clicáveis
+# Lê query param ?aba=...
+params = st.experimental_get_query_params()
+aba_atual = params.get("aba", [menu_itens[0]])[0]
+
+# Renderiza a lista de links na sidebar
 for item in menu_itens:
-    if st.sidebar.button(item, key=item):
-        st.session_state["aba_ativa"] = item
-        st.rerun()
+    href = "?aba=" + urllib.parse.quote_plus(item)
+    cls = "menu-link active" if item == aba_atual else "menu-link"
+    st.sidebar.markdown(f'<a class="{cls}" href="{href}">{item}</a>', unsafe_allow_html=True)
 
-# Deixa o botão ativo com classe especial
-st.markdown(f"""
-    <style>
-    [data-testid="stSidebar"] button[kind="secondary"][aria-pressed="true"],
-    [data-testid="stSidebar"] button[kind="primary"][aria-pressed="true"],
-    [data-testid="stSidebar"] button:focus {{
-        background-color: #FFD700 !important;
-        border: 1px solid #d4af37 !important;
-        color: black !important;
-        font-weight: 700 !important;
-    }}
-    </style>
-""", unsafe_allow_html=True)
-
-# A aba ativa passa a ser:
-opcao = st.session_state["aba_ativa"]
+# Determina a opção selecionada (usa aba_atual)
+opcao = aba_atual
+# =======================================================================
 
 # ============================
 # Observações
