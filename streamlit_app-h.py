@@ -16,7 +16,7 @@ st.title("Gerador de documentos fictícios (Fluxo) (v2.1.0)")
 # ---------------------------------------------
 if st.sidebar.button("🔁 Resetar todos os dados"):
     st.session_state.clear()
-    st.experimental_rerun()
+    st.rerun()
 
 # ---------------------------------------------
 # Inicialização do session_state
