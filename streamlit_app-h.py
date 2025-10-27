@@ -1,21 +1,22 @@
 import streamlit as st
 import random
-import csv
 import io
 import pandas as pd
 from datetime import datetime, timedelta
 
+# -----------------------------
+# Configuração inicial
+# -----------------------------
 st.set_page_config(page_title="Gerador de documentos fictícios", layout="wide")
 st.markdown("<h1 style='text-align:center; color:#4B8BBE;'>📄 Gerador de Documentos Fictícios (Fluxo)</h1>", unsafe_allow_html=True)
 
 # -----------------------------
-# Inicialização session_state
+# Inicialização do session_state
 # -----------------------------
 def init_state(key, default):
     if key not in st.session_state:
         st.session_state[key] = default
 
-# Fluxo passo a passo
 init_state("step", 0)
 init_state("data_inicio", datetime(2025, 1, 1))
 init_state("data_fim", datetime(2025, 12, 31))
@@ -73,7 +74,7 @@ def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
     entrada = st.text_area(f"{nome} (separados por vírgula)", value=",".join(lista_padrao))
     lista = [x.strip() for x in entrada.split(",") if x.strip()]
     st.session_state[f"lista_{key}"] = lista
-    return len(lista) > 0  # Retorna se já tem dados
+    return len(lista) > 0  # Retorna True se já tem dados
 
 def gerar_registros_csv(n):
     registros = []
@@ -111,7 +112,7 @@ def exibir_dashboard(df):
         st.bar_chart(df.groupby("cod_unidade")['valor'].sum())
 
 # -----------------------------
-# Fluxo passo a passo
+# Wizard passo a passo
 # -----------------------------
 # Passo 0 - Observações
 if st.session_state.step == 0:
@@ -143,43 +144,38 @@ elif st.session_state.step == 1:
 # Passo 2 - Unidades
 elif st.session_state.step == 2:
     preenchido = atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
-    if preenchido:
-        if st.button("Próximo: Classificações"):
-            st.session_state.step += 1
-            st.rerun()
+    if preenchido and st.button("Próximo: Classificações"):
+        st.session_state.step += 1
+        st.rerun()
 
 # Passo 3 - Classificações
 elif st.session_state.step == 3:
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
-    if entradas_ok and saidas_ok:
-        if st.button("Próximo: Tesouraria"):
-            st.session_state.step += 1
-            st.rerun()
+    if entradas_ok and saidas_ok and st.button("Próximo: Tesouraria"):
+        st.session_state.step += 1
+        st.rerun()
 
 # Passo 4 - Tesouraria
 elif st.session_state.step == 4:
     preenchido = atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
-    if preenchido:
-        if st.button("Próximo: Centro de Custo"):
-            st.session_state.step += 1
-            st.rerun()
+    if preenchido and st.button("Próximo: Centro de Custo"):
+        st.session_state.step += 1
+        st.rerun()
 
 # Passo 5 - Centro de Custo
 elif st.session_state.step == 5:
     preenchido = atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
-    if preenchido:
-        if st.button("Próximo: Tipos de Documento"):
-            st.session_state.step += 1
-            st.rerun()
+    if preenchido and st.button("Próximo: Tipos de Documento"):
+        st.session_state.step += 1
+        st.rerun()
 
 # Passo 6 - Tipos de Documento
 elif st.session_state.step == 6:
     preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
-    if preenchido:
-        if st.button("Próximo: Gerar CSV"):
-            st.session_state.step += 1
-            st.rerun()
+    if preenchido and st.button("Próximo: Gerar CSV"):
+        st.session_state.step += 1
+        st.rerun()
 
 # Passo 7 - Gerar CSV
 elif st.session_state.step == 7:
@@ -193,7 +189,15 @@ elif st.session_state.step == 7:
         ])
         st.session_state.registros_gerados = df
         st.success(f"CSV gerado com {len(registros)} registros!")
+
+        # ✅ Correção do download_button
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False)
-        st.download_button("📥 Download CSV", data=csv_buffer, file_name="documentos.csv", mime="text/csv")
+        st.download_button(
+            "📥 Download CSV",
+            data=csv_buffer.getvalue(),  # <-- string correta
+            file_name="documentos.csv",
+            mime="text/csv"
+        )
+
         exibir_dashboard(df)
