@@ -348,13 +348,12 @@ elif opcao == "Gerar CSV":
     st.header("Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
 
-    # garante que variáveis existam (valores default definidos no topo)
     try:
-        data_inicio  # refere-se à variável definida em Período (ou default)
+        data_inicio
         data_fim
     except NameError:
-        data_inicio = datetime(2025,1,1)
-        data_fim = datetime(2025,12,31)
+        data_inicio = datetime(2025, 1, 1)
+        data_fim = datetime(2025, 12, 31)
 
     def random_date(start, end):
         delta = end - start
@@ -373,36 +372,23 @@ elif opcao == "Gerar CSV":
     registros = []
     id_counter = 1
 
-# --- Garantir que variáveis existam antes de usar ---
-# tenta recuperar das variáveis locais/importadas; se não existirem, cria defaults
-if 'entradas_codigos' not in locals():
+    # Garante que variáveis existam
     entradas_codigos = st.session_state.get("entradas_codigos", [])
-
-if 'saidas_codigos' not in locals():
     saidas_codigos = st.session_state.get("saidas_codigos", [])
-
-if 'lista_unidades' not in locals():
     lista_unidades = st.session_state.get("lista_unidades", ["01", "02", "03"])
-
-if 'lista_tesouraria' not in locals():
     lista_tesouraria = st.session_state.get("lista_tesouraria", [])
-
-if 'lista_cc' not in locals():
     lista_cc = st.session_state.get("lista_cc", [])
-
-if 'lista_tipos' not in locals():
     lista_tipos = st.session_state.get("lista_tipos", [])
 
     if st.button("Gerar CSV"):
-        # se listas estiverem vazias, preencha com defaults para evitar errors
         if not lista_unidades:
-            lista_unidades = ["01","02","03"]
+            lista_unidades = ["01", "02", "03"]
         if not entradas_codigos:
-            entradas_codigos = ["E001","E002","E003"]
+            entradas_codigos = ["E001", "E002", "E003"]
         if not saidas_codigos:
-            saidas_codigos = ["S001","S002","S003"]
+            saidas_codigos = ["S001", "S002", "S003"]
         if not lista_tesouraria:
-            lista_tesouraria = ["T001","T002"]
+            lista_tesouraria = ["T001", "T002"]
         if not lista_cc:
             lista_cc = [""]
         if not lista_tipos:
@@ -428,7 +414,6 @@ if 'lista_tipos' not in locals():
             ])
             id_counter += 1
 
-        # Criar CSV (corrigida a linha que estava quebrada)
         csv_file = "documentos.csv"
         with open(csv_file, "w", newline="", encoding="utf-8-sig") as f:
             writer = csv.writer(f)
