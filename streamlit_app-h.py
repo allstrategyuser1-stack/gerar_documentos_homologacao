@@ -175,7 +175,7 @@ st.markdown("""
 <style>
 /* Primeiro botão na linha de colunas: Voltar */
 div.stButton > button:first-child {
-    background-color: #ffcc80 !important;  /* Laranja */
+    background-color: #ffcc79 !important;  /* Laranja */
     color: black !important;
     font-weight: bold;
     border-radius: 8px;
