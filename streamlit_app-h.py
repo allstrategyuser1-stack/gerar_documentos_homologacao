@@ -168,6 +168,54 @@ with st.expander("Observações da função", expanded=False):
 # -----------------------------
 step = st.session_state.step
 
+# -----------------------------
+# CSS para botões Voltar e Avançar
+# -----------------------------
+st.markdown("""
+<style>
+div.stButton > button.voltar {
+    background-color: #ffcc80 !important;  /* Laranja claro */
+    color: black !important;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 0.5em 1em;
+}
+div.stButton > button.avancar {
+    background-color: #fff59d !important;  /* Amarelo claro */
+    color: black !important;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 0.5em 1em;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
+# Funções para avançar e voltar passo
+# -----------------------------
+def avancar_step():
+    st.session_state.step += 1
+
+def voltar_step():
+    if st.session_state.step > 0:
+        st.session_state.step -= 1
+
+# -----------------------------
+# Função auxiliar para criar botões alinhados
+# -----------------------------
+def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
+    col1, col2 = st.columns([1,1])
+    with col1:
+        st.button("⬅ Voltar", on_click=voltar_step, key=f"voltar_{st.session_state.step}", args=(), kwargs={}, help=None)
+    with col2:
+        if preenchido:
+            st.button(label_proximo, on_click=avancar_step, key=f"avancar_{st.session_state.step}")
+
+# -----------------------------
+# Wizard passo a passo com layout consistente
+# -----------------------------
+step = st.session_state.step
+
 # Passo 0 - Período
 if step == 0:
     st.markdown("### 📅 Selecionar Período")
@@ -190,44 +238,41 @@ if step == 0:
     elif data_fim < data_inicio:
         st.error("A data final não pode ser anterior à data inicial!")
     else:
-        st.button(
-            "Próximo: Unidades",
-            on_click=lambda: st.session_state.update({
-                "data_inicio": data_inicio,
-                "data_fim": data_fim
-            }) or avancar_step()
-        )
+        col1, col2 = st.columns([1,1])
+        with col2:
+            st.button(
+                "Próximo: Unidades ➡",
+                on_click=lambda: st.session_state.update({
+                    "data_inicio": data_inicio,
+                    "data_fim": data_fim
+                }) or avancar_step()
+            )
 
 # Passo 1 - Unidades
 elif step == 1:
     preenchido = atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
-    if preenchido:
-        st.button("Próximo: Classificações", on_click=avancar_step)
+    botoes_step(preenchido, "Próximo: Classificações ➡")
 
 # Passo 2 - Classificações
 elif step == 2:
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
-    if entradas_ok and saidas_ok:
-        st.button("Próximo: Tesouraria", on_click=avancar_step)
+    botoes_step(entradas_ok and saidas_ok, "Próximo: Tesouraria ➡")
 
 # Passo 3 - Tesouraria
 elif step == 3:
     preenchido = atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
-    if preenchido:
-        st.button("Próximo: Centro de Custo", on_click=avancar_step)
+    botoes_step(preenchido, "Próximo: Centro de Custo ➡")
 
 # Passo 4 - Centro de Custo
 elif step == 4:
     preenchido = atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
-    if preenchido:
-        st.button("Próximo: Tipos de Documento", on_click=avancar_step)
+    botoes_step(preenchido, "Próximo: Tipos de Documento ➡")
 
 # Passo 5 - Tipos de Documento
 elif step == 5:
     preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
-    if preenchido:
-        st.button("Próximo: Gerar CSV", on_click=avancar_step)
+    botoes_step(preenchido, "Próximo: Gerar CSV ➡")
 
 # Passo 6 - Gerar CSV
 elif step == 6:
@@ -243,17 +288,14 @@ elif step == 6:
         st.session_state.registros_gerados = df
         st.session_state.csv_gerado = True
 
-    st.button("Gerar CSV", on_click=gerar_csv)
+    botoes_step(preenchido=True, label_proximo="Gerar CSV")
 
     if st.session_state.get("csv_gerado", False):
         df = st.session_state.registros_gerados
-
-        # Download CSV
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False)
         st.download_button("📥 Download CSV", data=csv_buffer.getvalue(), file_name="documentos.csv", mime="text/csv")
 
-        # Dashboard com quantidade e valor separados por Entradas e Saídas
         st.subheader("📊 Registros e Valores")
         entradas_valor = df[df['natureza']=='E']['valor'].sum()
         saidas_valor = df[df['natureza']=='S']['valor'].sum()
