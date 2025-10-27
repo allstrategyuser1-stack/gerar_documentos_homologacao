@@ -5,27 +5,18 @@ import io
 import pandas as pd
 from datetime import datetime, timedelta
 
-# ---------------------------------------------
-# Configuração inicial
-# ---------------------------------------------
 st.set_page_config(page_title="Gerador de documentos fictícios", layout="wide")
 st.markdown("<h1 style='text-align:center; color:#4B8BBE;'>📄 Gerador de Documentos Fictícios (Fluxo)</h1>", unsafe_allow_html=True)
 
-# ---------------------------------------------
-# Reset de dados
-# ---------------------------------------------
-st.sidebar.markdown("## 🔧 Configurações")
-if st.sidebar.button("🔁 Resetar todos os dados"):
-    st.session_state.clear()
-    st.rerun()
-
-# ---------------------------------------------
-# Inicialização do session_state
-# ---------------------------------------------
+# -----------------------------
+# Inicialização session_state
+# -----------------------------
 def init_state(key, default):
     if key not in st.session_state:
         st.session_state[key] = default
 
+# Fluxo passo a passo
+init_state("step", 0)
 init_state("data_inicio", datetime(2025, 1, 1))
 init_state("data_fim", datetime(2025, 12, 31))
 init_state("lista_unidades", ["01", "02", "03"])
@@ -34,12 +25,11 @@ init_state("saidas_codigos", ["S001", "S002"])
 init_state("lista_tesouraria", ["T001", "T002"])
 init_state("lista_cc", ["CC01", "CC02"])
 init_state("lista_tipos", ["NF", "REC"])
-init_state("aba_ativa", "Observações")
 init_state("registros_gerados", [])
 
-# ---------------------------------------------
+# -----------------------------
 # Funções auxiliares
-# ---------------------------------------------
+# -----------------------------
 def gerar_template_xlsx(tipo):
     output = io.BytesIO()
     templates = {
@@ -61,29 +51,29 @@ def gerar_template_xlsx(tipo):
     output.seek(0)
     return output.getvalue()
 
-def atualizar_lista(nome, lista_padrao, tipo_arquivo):
-    with st.expander(f"🗂️ {nome}", expanded=True):
-        col1, col2 = st.columns([1,1])
-        lista = lista_padrao.copy()
-        with col1:
-            st.download_button(f"📥 Modelo {nome}", data=gerar_template_xlsx(tipo_arquivo), file_name=f"{nome}_template.xlsx")
-        with col2:
-            arquivo = st.file_uploader(f"Importar {nome}", type=["xlsx"], key=f"upload_{nome}")
-            if arquivo:
-                try:
-                    df = pd.read_excel(arquivo)
-                    if "codigo" in df.columns:
-                        lista = df["codigo"].dropna().astype(str).tolist()
-                        st.success(f"{len(lista)} {nome.lower()} importados!")
-                        st.dataframe(df, use_container_width=True)
-                    else:
-                        st.error("Arquivo inválido: coluna 'codigo' não encontrada")
-                except Exception as e:
-                    st.error(f"Erro ao ler arquivo: {e}")
-        entrada = st.text_area(f"{nome} (separados por vírgula)", value=",".join(lista_padrao))
-        lista = [x.strip() for x in entrada.split(",") if x.strip()]
-        st.session_state[f"lista_{nome.lower()}"] = lista
-    return lista
+def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
+    st.write(f"### {nome}")
+    col1, col2 = st.columns([1,1])
+    lista = lista_padrao.copy()
+    with col1:
+        st.download_button(f"📥 Modelo {nome}", data=gerar_template_xlsx(tipo_arquivo), file_name=f"{nome}_template.xlsx", key=f"dl_{nome}")
+    with col2:
+        arquivo = st.file_uploader(f"Importar {nome}", type=["xlsx"], key=f"upload_{key}")
+        if arquivo:
+            try:
+                df = pd.read_excel(arquivo)
+                if "codigo" in df.columns:
+                    lista = df["codigo"].dropna().astype(str).tolist()
+                    st.success(f"{len(lista)} {nome.lower()} importados!")
+                    st.dataframe(df, use_container_width=True)
+                else:
+                    st.error("Arquivo inválido: coluna 'codigo' não encontrada")
+            except Exception as e:
+                st.error(f"Erro ao ler arquivo: {e}")
+    entrada = st.text_area(f"{nome} (separados por vírgula)", value=",".join(lista_padrao))
+    lista = [x.strip() for x in entrada.split(",") if x.strip()]
+    st.session_state[f"lista_{key}"] = lista
+    return len(lista) > 0  # Retorna se já tem dados
 
 def gerar_registros_csv(n):
     registros = []
@@ -106,13 +96,13 @@ def gerar_registros_csv(n):
     return registros
 
 def exibir_dashboard(df):
-    st.subheader("📊 Resumo do Mini-Dashboard")
+    st.subheader("📊 Mini-Dashboard")
     col1, col2, col3 = st.columns(3)
     with col1:
         entradas = df[df['tipo']=='E'].shape[0]
         saídas = df[df['tipo']=='S'].shape[0]
-        st.metric("Entradas", entradas, delta=None)
-        st.metric("Saídas", saídas, delta=None)
+        st.metric("Entradas", entradas)
+        st.metric("Saídas", saídas)
     with col2:
         total_valor = df['valor'].sum()
         st.metric("Valor total", f"R$ {total_valor:,.2f}")
@@ -120,72 +110,90 @@ def exibir_dashboard(df):
         st.text("Distribuição por unidade")
         st.bar_chart(df.groupby("cod_unidade")['valor'].sum())
 
-# ---------------------------------------------
-# Menu lateral
-# ---------------------------------------------
-menu_itens = [
-    "Observações",
-    "Período",
-    "Unidades",
-    "Classificações",
-    "Tesouraria",
-    "Centro de Custo",
-    "Tipos de Documento",
-    "Gerar CSV"
-]
-opcao = st.sidebar.radio("📂 Menu", menu_itens, index=menu_itens.index(st.session_state.aba_ativa))
-st.session_state.aba_ativa = opcao
+# -----------------------------
+# Fluxo passo a passo
+# -----------------------------
+# Passo 0 - Observações
+if st.session_state.step == 0:
+    st.markdown("### 📝 Observações da função")
+    st.info("""
+    - Gera documentos fictícios de entradas e saídas financeiras.
+    - Campos devem seguir os códigos cadastrados.
+    - Período definido pelas datas inicial e final.
+    - Datas de vencimento e liquidação podem ser aleatórias.
+    """)
+    if st.button("Próximo: Período"):
+        st.session_state.step += 1
+        st.experimental_rerun()
 
-# ---------------------------------------------
-# Conteúdo das abas
-# ---------------------------------------------
-if opcao=="Observações":
-    with st.container():
-        st.markdown("### 📝 Informações da função")
-        st.info("""
-        - Gera documentos fictícios de entradas e saídas financeiras.
-        - Campos devem seguir os códigos cadastrados.
-        - Período definido pelas datas inicial e final.
-        - Datas de vencimento e liquidação podem ser aleatórias.
-        """)
+# Passo 1 - Período
+elif st.session_state.step == 1:
+    st.markdown("### 📅 Selecionar Período")
+    data_inicio = st.date_input("Data inicial", value=st.session_state.data_inicio)
+    data_fim = st.date_input("Data final", value=st.session_state.data_fim)
+    st.session_state.data_inicio = data_inicio
+    st.session_state.data_fim = data_fim
+    if data_fim >= data_inicio:
+        if st.button("Próximo: Unidades"):
+            st.session_state.step += 1
+            st.experimental_rerun()
+    else:
+        st.error("A data final não pode ser menor que a inicial!")
 
-elif opcao=="Período":
-    with st.expander("📅 Selecionar Período", expanded=True):
-        data_inicio = st.date_input("Data inicial", value=st.session_state.data_inicio)
-        data_fim = st.date_input("Data final", value=st.session_state.data_fim)
-        if data_fim<data_inicio:
-            st.error("A data final não pode ser menor que a inicial!")
-        st.session_state.data_inicio = data_inicio
-        st.session_state.data_fim = data_fim
+# Passo 2 - Unidades
+elif st.session_state.step == 2:
+    preenchido = atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
+    if preenchido:
+        if st.button("Próximo: Classificações"):
+            st.session_state.step += 1
+            st.experimental_rerun()
 
-elif opcao=="Unidades":
-    atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades")
+# Passo 3 - Classificações
+elif st.session_state.step == 3:
+    entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
+    saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
+    if entradas_ok and saidas_ok:
+        if st.button("Próximo: Tesouraria"):
+            st.session_state.step += 1
+            st.experimental_rerun()
 
-elif opcao=="Classificações":
-    atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada")
-    atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida")
+# Passo 4 - Tesouraria
+elif st.session_state.step == 4:
+    preenchido = atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
+    if preenchido:
+        if st.button("Próximo: Centro de Custo"):
+            st.session_state.step += 1
+            st.experimental_rerun()
 
-elif opcao=="Tesouraria":
-    atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria")
+# Passo 5 - Centro de Custo
+elif st.session_state.step == 5:
+    preenchido = atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
+    if preenchido:
+        if st.button("Próximo: Tipos de Documento"):
+            st.session_state.step += 1
+            st.experimental_rerun()
 
-elif opcao=="Centro de Custo":
-    atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo")
+# Passo 6 - Tipos de Documento
+elif st.session_state.step == 6:
+    preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
+    if preenchido:
+        if st.button("Próximo: Gerar CSV"):
+            st.session_state.step += 1
+            st.experimental_rerun()
 
-elif opcao=="Tipos de Documento":
-    atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc")
-
-elif opcao=="Gerar CSV":
-    with st.expander("💾 Gerar Arquivo CSV", expanded=True):
-        num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
-        if st.button("🟢 Gerar CSV"):
-            registros = gerar_registros_csv(num_registros)
-            df = pd.DataFrame(registros, columns=[
-                "documento","tipo","valor","cod_unidade","data_venc","data_liq",
-                "descricao","cliente_fornecedor","tesouraria","centro_custo","tipo_documento"
-            ])
-            st.session_state.registros_gerados = df
-            st.success(f"CSV gerado com {len(registros)} registros!")
-            csv_buffer = io.StringIO()
-            df.to_csv(csv_buffer, index=False)
-            st.download_button("📥 Download CSV", data=csv_buffer, file_name="documentos.csv", mime="text/csv")
-            exibir_dashboard(df)
+# Passo 7 - Gerar CSV
+elif st.session_state.step == 7:
+    st.markdown("### 💾 Gerar Arquivo CSV")
+    num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
+    if st.button("Gerar CSV"):
+        registros = gerar_registros_csv(num_registros)
+        df = pd.DataFrame(registros, columns=[
+            "documento","tipo","valor","cod_unidade","data_venc","data_liq",
+            "descricao","cliente_fornecedor","tesouraria","centro_custo","tipo_documento"
+        ])
+        st.session_state.registros_gerados = df
+        st.success(f"CSV gerado com {len(registros)} registros!")
+        csv_buffer = io.StringIO()
+        df.to_csv(csv_buffer, index=False)
+        st.download_button("📥 Download CSV", data=csv_buffer, file_name="documentos.csv", mime="text/csv")
+        exibir_dashboard(df)
