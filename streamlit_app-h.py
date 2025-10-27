@@ -205,14 +205,19 @@ elif step == 6:
         df.to_csv(csv_buffer, index=False)
         st.download_button("📥 Download CSV", data=csv_buffer.getvalue(), file_name="documentos.csv", mime="text/csv")
 
-        # Mini-dashboard com valores separados por Entradas e Saídas, abaixo do botão
-        st.subheader("📊 Dashboard de Valores")
+        # Dashboard com quantidade e valor separados por Entradas e Saídas
+        st.subheader("📊 Dashboard de Registros e Valores")
         entradas_valor = df[df['tipo']=='E']['valor'].sum()
         saidas_valor = df[df['tipo']=='S']['valor'].sum()
+        entradas_qtd = df[df['tipo']=='E'].shape[0]
+        saidas_qtd = df[df['tipo']=='S'].shape[0]
+
         col1, col2 = st.columns(2)
         with col1:
+            st.metric("Quantidade de Entradas", entradas_qtd)
             st.metric("Valor total Entradas", f"R$ {entradas_valor:,.2f}")
         with col2:
+            st.metric("Quantidade de Saídas", saidas_qtd)
             st.metric("Valor total Saídas", f"R$ {saidas_valor:,.2f}")
 
     # Botão amarelo claro para gerar CSV
