@@ -301,10 +301,10 @@ elif step == 6:
 
         # Dashboard com quantidade e valor separados por Entradas e Saídas
         st.subheader("📊 Registros e Valores")
-        entradas_valor = df[df['tipo']=='E']['valor'].sum()
-        saidas_valor = df[df['tipo']=='S']['valor'].sum()
-        entradas_qtd = df[df['tipo']=='E'].shape[0]
-        saidas_qtd = df[df['tipo']=='S'].shape[0]
+        entradas_valor = df[df['natureza']=='E']['valor'].sum()
+        saidas_valor = df[df['natureza']=='S']['valor'].sum()
+        entradas_qtd = df[df['natureza']=='E'].shape[0]
+        saidas_qtd = df[df['natureza']=='S'].shape[0]
 
         col1, col2 = st.columns(2)
         with col1:
