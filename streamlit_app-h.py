@@ -75,7 +75,7 @@ def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
     col1, col2 = st.columns([1,1])
     with col1:
         st.download_button(
-            f"📥 Modelo {nome}", 
+            f"📥 Modelo", 
             data=gerar_template_xlsx(tipo_arquivo), 
             file_name=f"{nome}_template.xlsx", 
             key=f"dl_{nome}"
