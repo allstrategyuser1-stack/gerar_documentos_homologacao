@@ -191,6 +191,7 @@ elif step == 6:
     st.markdown("### 💾 Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
 
+    # Função que gera o CSV e atualiza o session_state
     def gerar_csv():
         registros = gerar_registros_csv(num_registros)
         df = pd.DataFrame(registros, columns=[
@@ -198,7 +199,14 @@ elif step == 6:
             "descricao","cliente_fornecedor","tesouraria","centro_custo","tipo_documento"
         ])
         st.session_state.registros_gerados = df
-        st.success(f"CSV gerado com {len(registros)} registros!")
+        st.session_state.csv_gerado = True  # flag para exibir download e dashboards
+
+    # Botão amarelo claro
+    st.button("Gerar CSV", on_click=gerar_csv)
+
+    # Após gerar CSV, exibe download e dashboards
+    if st.session_state.get("csv_gerado", False):
+        df = st.session_state.registros_gerados
 
         # Download CSV
         csv_buffer = io.StringIO()
