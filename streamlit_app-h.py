@@ -29,6 +29,21 @@ init_state("lista_tipos", ["NF", "REC"])
 init_state("registros_gerados", [])
 
 # -----------------------------
+# CSS para botão destaque
+# -----------------------------
+st.markdown("""
+<style>
+.button-destaque button {
+    background-color: #fff59d !important;  /* amarelo claro */
+    color: black !important;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 0.5em 1em;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
 # Funções auxiliares
 # -----------------------------
 def gerar_template_xlsx(tipo):
@@ -74,7 +89,7 @@ def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
     entrada = st.text_area(f"{nome} (separados por vírgula)", value=",".join(lista))
     lista = [x.strip() for x in entrada.split(",") if x.strip()]
     st.session_state[f"lista_{key}"] = lista
-    return len(lista) > 0  # Retorna True se já tem dados
+    return len(lista) > 0
 
 def gerar_registros_csv(n):
     registros = []
@@ -112,6 +127,18 @@ def exibir_dashboard(df):
         st.bar_chart(df.groupby("cod_unidade")['valor'].sum())
 
 # -----------------------------
+# Função genérica de avanço de passo
+# -----------------------------
+def avancar_step():
+    st.session_state.step += 1
+
+# -----------------------------
+# Função para criar botão de destaque
+# -----------------------------
+def botao_avancar(label, on_click):
+    st.markdown(f'<div class="button-destaque">{st.button(label, key=label, on_click=on_click)}</div>', unsafe_allow_html=True)
+
+# -----------------------------
 # Expander de Observações
 # -----------------------------
 with st.expander("Observações da função", expanded=False):
@@ -123,67 +150,47 @@ with st.expander("Observações da função", expanded=False):
     """)
 
 # -----------------------------
-# Wizard passo a passo com on_click
+# Wizard passo a passo com botão destaque
 # -----------------------------
-# Passo 0 - Período
-if st.session_state.step == 0:
+step = st.session_state.step
+
+if step == 0:
     st.markdown("### 📅 Selecionar Período")
     data_inicio = st.date_input("Data inicial", value=st.session_state.data_inicio)
     data_fim = st.date_input("Data final", value=st.session_state.data_fim)
-    
+
     if data_fim < data_inicio:
         st.error("A data final não pode ser menor que a inicial!")
     else:
-        def avancar_periodo():
-            st.session_state.data_inicio = data_inicio
-            st.session_state.data_fim = data_fim
-            st.session_state.step += 1
+        botao_avancar("Próximo: Unidades", lambda: st.session_state.update({"data_inicio": data_inicio, "data_fim": data_fim}) or avancar_step())
 
-        st.button("Próximo: Unidades", on_click=avancar_periodo)
-
-# Passo 1 - Unidades
-elif st.session_state.step == 1:
+elif step == 1:
     preenchido = atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
     if preenchido:
-        def avancar_unidades():
-            st.session_state.step += 1
-        st.button("Próximo: Classificações", on_click=avancar_unidades)
+        botao_avancar("Próximo: Classificações", avancar_step)
 
-# Passo 2 - Classificações
-elif st.session_state.step == 2:
+elif step == 2:
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     if entradas_ok and saidas_ok:
-        def avancar_classificacoes():
-            st.session_state.step += 1
-        st.button("Próximo: Tesouraria", on_click=avancar_classificacoes)
+        botao_avancar("Próximo: Tesouraria", avancar_step)
 
-# Passo 3 - Tesouraria
-elif st.session_state.step == 3:
+elif step == 3:
     preenchido = atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
     if preenchido:
-        def avancar_tesouraria():
-            st.session_state.step += 1
-        st.button("Próximo: Centro de Custo", on_click=avancar_tesouraria)
+        botao_avancar("Próximo: Centro de Custo", avancar_step)
 
-# Passo 4 - Centro de Custo
-elif st.session_state.step == 4:
+elif step == 4:
     preenchido = atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
     if preenchido:
-        def avancar_cc():
-            st.session_state.step += 1
-        st.button("Próximo: Tipos de Documento", on_click=avancar_cc)
+        botao_avancar("Próximo: Tipos de Documento", avancar_step)
 
-# Passo 5 - Tipos de Documento
-elif st.session_state.step == 5:
+elif step == 5:
     preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
     if preenchido:
-        def avancar_tipos():
-            st.session_state.step += 1
-        st.button("Próximo: Gerar CSV", on_click=avancar_tipos)
+        botao_avancar("Próximo: Gerar CSV", avancar_step)
 
-# Passo 6 - Gerar CSV
-elif st.session_state.step == 6:
+elif step == 6:
     st.markdown("### 💾 Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
     
@@ -207,4 +214,4 @@ elif st.session_state.step == 6:
 
         exibir_dashboard(df)
 
-    st.button("Gerar CSV", on_click=gerar_csv)
+    botao_avancar("Gerar CSV", gerar_csv)
