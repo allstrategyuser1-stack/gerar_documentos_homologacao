@@ -154,11 +154,11 @@ if step == 0:
     data_fim_input = st.date_input("Data final", value=st.session_state.data_fim)
     
     if data_fim_input < data_inicio_input:
-        st.error("A data final não pode ser menor que a inicial!")
+        st.error("A data final não pode anterior à data inicial!")
     else:
         # Converte para string no formato dd/mm/aaaa
-        data_inicio_str = data_inicio_input.strftime("%d/%m/%Y")
-        data_fim_str = data_fim_input.strftime("%d/%m/%Y")
+        data_inicio_str = data_inicio_input.strftime("%dd/%mm/%YYYY")
+        data_fim_str = data_fim_input.strftime("%dd/%mm/%YYYY")
         
         st.button(
             "Próximo: Unidades",
