@@ -17,7 +17,7 @@ DEFAULT_STATE = {
     "step": 0,
     "data_inicio": datetime(2025, 1, 1),
     "data_fim": datetime(2025, 12, 31),
-    "lista_unidades": ["01", "02", "03"],
+    "lista_unidades": ["01", "02"],
     "entradas_codigos": ["E001", "E002"],
     "saidas_codigos": ["S001", "S002"],
     "lista_tesouraria": ["T001", "T002"],
