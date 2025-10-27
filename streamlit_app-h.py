@@ -174,7 +174,7 @@ step = st.session_state.step
 st.markdown("""
 <style>
 div.stButton > button.voltar {
-    background-color: #ffcc80 !important;  /* Laranja claro */
+    background-color: #ffcc79 !important;  /* Laranja claro */
     color: black !important;
     font-weight: bold;
     border-radius: 8px;
