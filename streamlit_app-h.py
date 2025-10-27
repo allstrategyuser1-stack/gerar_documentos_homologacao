@@ -165,8 +165,8 @@ if st.button("🔄 Limpar dados"):
 # -------------------------------------------------
 with st.expander("ℹ️ Observações da função", expanded=False):
     st.info("""
-        - Gera documentos fictícios de entradas e saídas financeiras.
-        - Os parâmetros devem ser preenchidos/importados com os códigos cadastrados no Fluxo.
+        - Gera um arquivo com documentos fictícios de entradas e saídas financeiras baseados nos parâmetros informados.
+            - Os parâmetros devem ser preenchidos/importados com os códigos cadastrados no Fluxo.
         - O período de geração define as datas de vencimento e liquidação.
     """)
 
