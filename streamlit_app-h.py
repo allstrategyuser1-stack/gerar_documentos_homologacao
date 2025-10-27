@@ -151,12 +151,31 @@ step = st.session_state.step
 if step == 0:
     st.markdown("### 📅 Selecionar Período")
     
-    # Mantém objetos datetime.date no session_state
-    data_inicio = st.date_input("Data inicial", value=st.session_state.data_inicio)
-    data_fim = st.date_input("Data final", value=st.session_state.data_fim)
-    
-    if data_fim < data_inicio:
-        st.error("A data final não pode ser anterior à data inicial!")
+    # Valores iniciais no formato dd/mm/aaaa
+    data_inicio_str = st.text_input(
+        "Data inicial", value=st.session_state.data_inicio.strftime("%d/%m/%Y")
+    )
+    data_fim_str = st.text_input(
+        "Data final", value=st.session_state.data_fim.strftime("%d/%m/%Y")
+    )
+
+    # Função para validar a data no formato dd/mm/aaaa
+    def validar_data(data_str):
+        try:
+            return datetime.strptime(data_str, "%d/%m/%Y").date()
+        except ValueError:
+            return None
+
+    data_inicio = validar_data(data_inicio_str)
+    data_fim = validar_data(data_fim_str)
+
+    # Validações e mensagens de erro
+    if data_inicio is None:
+        st.error("Data inicial inválida! Use o formato dd/mm/aaaa")
+    elif data_fim is None:
+        st.error("Data final inválida! Use o formato dd/mm/aaaa")
+    elif data_fim < data_inicio:
+        st.error("A data final não pode ser menor que a inicial!")
     else:
         st.button(
             "Próximo: Unidades",
