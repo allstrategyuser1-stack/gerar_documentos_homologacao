@@ -29,16 +29,24 @@ init_state("lista_tipos", ["NF", "REC"])
 init_state("registros_gerados", [])
 
 # -----------------------------
-# CSS para botão destaque
+# CSS para botão destaque full-width
 # -----------------------------
 st.markdown("""
 <style>
+.button-destaque {
+    display: flex;
+    justify-content: center;
+    margin: 1em 0;
+}
 .button-destaque button {
     background-color: #fff59d !important;  /* amarelo claro */
     color: black !important;
     font-weight: bold;
-    border-radius: 5px;
-    padding: 0.5em 1em;
+    border-radius: 8px;
+    padding: 0.75em 2em;
+    width: 100%;
+    max-width: 400px;
+    font-size: 16px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -133,10 +141,12 @@ def avancar_step():
     st.session_state.step += 1
 
 # -----------------------------
-# Função para criar botão de destaque
+# Função para botão de destaque centralizado
 # -----------------------------
 def botao_avancar(label, on_click):
-    st.markdown(f'<div class="button-destaque">{st.button(label, key=label, on_click=on_click)}</div>', unsafe_allow_html=True)
+    col = st.columns([1,2,1])[1]  # centraliza
+    with col:
+        st.markdown(f'<div class="button-destaque">{st.button(label, key=label, on_click=on_click)}</div>', unsafe_allow_html=True)
 
 # -----------------------------
 # Expander de Observações
@@ -150,7 +160,7 @@ with st.expander("Observações da função", expanded=False):
     """)
 
 # -----------------------------
-# Wizard passo a passo com botão destaque
+# Wizard passo a passo
 # -----------------------------
 step = st.session_state.step
 
