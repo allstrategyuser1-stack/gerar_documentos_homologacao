@@ -29,15 +29,10 @@ init_state("lista_tipos", ["NF", "REC"])
 init_state("registros_gerados", [])
 
 # -----------------------------
-# CSS para botão destaque full-width
+# CSS para botão destaque
 # -----------------------------
 st.markdown("""
 <style>
-.button-destaque {
-    display: flex;
-    justify-content: center;
-    margin: 1em 0;
-}
 .button-destaque button {
     background-color: #fff59d !important;  /* amarelo claro */
     color: black !important;
@@ -47,6 +42,8 @@ st.markdown("""
     width: 100%;
     max-width: 400px;
     font-size: 16px;
+    display: block;
+    margin: 0 auto;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -141,12 +138,13 @@ def avancar_step():
     st.session_state.step += 1
 
 # -----------------------------
-# Função para botão de destaque centralizado
+# Botão de destaque centralizado
 # -----------------------------
 def botao_avancar(label, on_click):
-    col = st.columns([1,2,1])[1]  # centraliza
-    with col:
-        st.markdown(f'<div class="button-destaque">{st.button(label, key=label, on_click=on_click)}</div>', unsafe_allow_html=True)
+    # centraliza usando coluna do meio
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        return st.button(label, key=label, on_click=on_click, help="Clique para avançar passo", args=())
 
 # -----------------------------
 # Expander de Observações
