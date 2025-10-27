@@ -114,21 +114,22 @@ def exibir_dashboard(df):
 # -----------------------------
 # Wizard passo a passo
 # -----------------------------
-# Passo 0 - Observações
-if st.session_state.step == 0:
-    st.markdown("### 📝 Observações da função")
+
+# Expander de Observações (minimizado)
+with st.expander("📝 Observações da função (clique para abrir)", expanded=False):
     st.info("""
     - Gera documentos fictícios de entradas e saídas financeiras.
     - Campos devem seguir os códigos cadastrados.
     - Período definido pelas datas inicial e final.
     - Datas de vencimento e liquidação podem ser aleatórias.
     """)
-    if st.button("Próximo: Período"):
-        st.session_state.step += 1
-        st.rerun()
 
-# Passo 1 - Período
-elif st.session_state.step == 1:
+# Função para avançar passo sem usar experimental_rerun
+def avancar_step():
+    st.session_state.step += 1
+
+# Passo 0 - Período
+if st.session_state.step == 0:
     st.markdown("### 📅 Selecionar Período")
     data_inicio = st.date_input("Data inicial", value=st.session_state.data_inicio)
     data_fim = st.date_input("Data final", value=st.session_state.data_fim)
@@ -136,49 +137,43 @@ elif st.session_state.step == 1:
     st.session_state.data_fim = data_fim
     if data_fim >= data_inicio:
         if st.button("Próximo: Unidades"):
-            st.session_state.step += 1
-            st.rerun()
+            avancar_step()
     else:
         st.error("A data final não pode ser menor que a inicial!")
 
-# Passo 2 - Unidades
-elif st.session_state.step == 2:
+# Passo 1 - Unidades
+elif st.session_state.step == 1:
     preenchido = atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
     if preenchido and st.button("Próximo: Classificações"):
-        st.session_state.step += 1
-        st.rerun()
+        avancar_step()
 
-# Passo 3 - Classificações
-elif st.session_state.step == 3:
+# Passo 2 - Classificações
+elif st.session_state.step == 2:
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     if entradas_ok and saidas_ok and st.button("Próximo: Tesouraria"):
-        st.session_state.step += 1
-        st.rerun()
+        avancar_step()
 
-# Passo 4 - Tesouraria
-elif st.session_state.step == 4:
+# Passo 3 - Tesouraria
+elif st.session_state.step == 3:
     preenchido = atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
     if preenchido and st.button("Próximo: Centro de Custo"):
-        st.session_state.step += 1
-        st.rerun()
+        avancar_step()
 
-# Passo 5 - Centro de Custo
-elif st.session_state.step == 5:
+# Passo 4 - Centro de Custo
+elif st.session_state.step == 4:
     preenchido = atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
     if preenchido and st.button("Próximo: Tipos de Documento"):
-        st.session_state.step += 1
-        st.rerun()
+        avancar_step()
 
-# Passo 6 - Tipos de Documento
-elif st.session_state.step == 6:
+# Passo 5 - Tipos de Documento
+elif st.session_state.step == 5:
     preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
     if preenchido and st.button("Próximo: Gerar CSV"):
-        st.session_state.step += 1
-        st.rerun()
+        avancar_step()
 
-# Passo 7 - Gerar CSV
-elif st.session_state.step == 7:
+# Passo 6 - Gerar CSV
+elif st.session_state.step == 6:
     st.markdown("### 💾 Gerar Arquivo CSV")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
     if st.button("Gerar CSV"):
@@ -190,12 +185,12 @@ elif st.session_state.step == 7:
         st.session_state.registros_gerados = df
         st.success(f"CSV gerado com {len(registros)} registros!")
 
-        # ✅ Correção do download_button
+        # Download CSV corrigido
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False)
         st.download_button(
             "📥 Download CSV",
-            data=csv_buffer.getvalue(),  # <-- string correta
+            data=csv_buffer.getvalue(),
             file_name="documentos.csv",
             mime="text/csv"
         )
