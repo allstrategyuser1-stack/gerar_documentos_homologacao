@@ -242,7 +242,7 @@ def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
         st.button("⬅ Voltar", on_click=voltar_step, key="botao_voltar")
     with col2:
         if preenchido:
-            st.button(label_proximo, on_click=avancar_step, key=)
+            st.button(label_proximo, on_click=avancar_step, key="botao_avancar")
 
 # -----------------------------
 # Wizard passo a passo com layout consistente
