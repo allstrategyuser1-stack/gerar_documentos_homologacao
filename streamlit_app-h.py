@@ -169,30 +169,6 @@ with st.expander("Observações da função", expanded=False):
 step = st.session_state.step
 
 # -----------------------------
-# CSS para botões Voltar e Avançar funcionando
-# -----------------------------
-st.markdown("""
-<style>
-/* Primeiro botão na linha de colunas: Voltar */
-div.stButton > button:first-child {
-    background-color: #ffcc79 !important;  /* Laranja */
-    color: black !important;
-    font-weight: bold;
-    border-radius: 8px;
-    padding: 0.5em 1em;
-}
-/* Segundo botão na linha de colunas: Avançar */
-div.stButton > button:last-child {
-    background-color: #fff59d !important;  /* Amarelo claro */
-    color: black !important;
-    font-weight: bold;
-    border-radius: 8px;
-    padding: 0.5em 1em;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# -----------------------------
 # Funções para avançar e voltar passo
 # -----------------------------
 def avancar_step():
@@ -203,18 +179,22 @@ def voltar_step():
         st.session_state.step -= 1
 
 # -----------------------------
-# Função auxiliar para criar botões alinhados
+# Função auxiliar para criar botões estilizados
 # -----------------------------
 def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
     col1, col2 = st.columns([1,1])
     with col1:
-        st.button("⬅ Voltar", on_click=voltar_step)
+        with st.form(key=f"form_voltar_{st.session_state.step}"):
+            if st.form_submit_button("⬅ Voltar", help="Voltar ao passo anterior"):
+                voltar_step()
     with col2:
         if preenchido:
-            st.button(label_proximo, on_click=avancar_step)
+            with st.form(key=f"form_avancar_{st.session_state.step}"):
+                if st.form_submit_button(label_proximo, help="Avançar para o próximo passo"):
+                    avancar_step()
 
 # -----------------------------
-# Wizard passo a passo com layout consistente
+# Wizard passo a passo completo
 # -----------------------------
 step = st.session_state.step
 
@@ -242,13 +222,13 @@ if step == 0:
     else:
         col1, col2 = st.columns([1,1])
         with col2:
-            st.button(
-                "Próximo: Unidades ➡",
-                on_click=lambda: st.session_state.update({
-                    "data_inicio": data_inicio,
-                    "data_fim": data_fim
-                }) or avancar_step()
-            )
+            with st.form(key="form_step0"):
+                if st.form_submit_button("Próximo: Unidades ➡"):
+                    st.session_state.update({
+                        "data_inicio": data_inicio,
+                        "data_fim": data_fim
+                    })
+                    avancar_step()
 
 # Passo 1 - Unidades
 elif step == 1:
