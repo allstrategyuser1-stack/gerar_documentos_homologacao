@@ -164,24 +164,18 @@ def voltar_step():
         st.session_state.step -= 1
 
 # -----------------------------
-# Função auxiliar para criar botões estilizados
+# Função auxiliar para criar botões alinhados
 # -----------------------------
 def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
     col1, col2 = st.columns([1,1])
-
-    # Botão Voltar (laranja)
     with col1:
-        if st.button("⬅ Voltar", on_click=voltar_step):
-            pass  # on_click já atualiza session_state
-
-    # Botão Avançar (amarelo)
+        st.button("⬅ Voltar", on_click=voltar_step)
     with col2:
         if preenchido:
-            if st.button(label_proximo, on_click=avancar_step):
-                pass  # on_click já atualiza session_state
+            st.button(label_proximo, on_click=avancar_step)
 
 # -----------------------------
-# Wizard passo a passo
+# Wizard passo a passo com layout consistente
 # -----------------------------
 step = st.session_state.step
 
@@ -224,9 +218,11 @@ elif step == 1:
 
 # Passo 2 - Classificações
 elif step == 2:
+    st.markdown("<h2 style='text-align:left; color:#000000;'>Classificações financeiras</h2>", unsafe_allow_html=True)
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     botoes_step(entradas_ok and saidas_ok, "Próximo: Tesouraria ➡")
+
 
 # Passo 3 - Tesouraria
 elif step == 3:
