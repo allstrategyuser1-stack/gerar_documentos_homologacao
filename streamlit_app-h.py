@@ -227,6 +227,3 @@ elif step == 6:
         with col2:
             st.metric("Quantidade de Saídas", saidas_qtd)
             st.metric("Valor total Saídas", f"R$ {saidas_valor:,.2f}")
-
-    # Botão amarelo claro para gerar CSV
-    st.button("Gerar CSV", on_click=gerar_csv)
