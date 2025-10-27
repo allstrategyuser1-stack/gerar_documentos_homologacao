@@ -169,18 +169,20 @@ with st.expander("Observações da função", expanded=False):
 step = st.session_state.step
 
 # -----------------------------
-# CSS para botões Voltar e Avançar
+# CSS para botões Voltar e Avançar funcionando
 # -----------------------------
 st.markdown("""
 <style>
-div.stButton > button.voltar {
-    background-color: #ffcc79 !important;  /* Laranja claro */
+/* Primeiro botão na linha de colunas: Voltar */
+div.stButton > button:first-child {
+    background-color: #ffcc80 !important;  /* Laranja */
     color: black !important;
     font-weight: bold;
     border-radius: 8px;
     padding: 0.5em 1em;
 }
-div.stButton > button.avancar {
+/* Segundo botão na linha de colunas: Avançar */
+div.stButton > button:last-child {
     background-color: #fff59d !important;  /* Amarelo claro */
     color: black !important;
     font-weight: bold;
@@ -206,10 +208,10 @@ def voltar_step():
 def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
     col1, col2 = st.columns([1,1])
     with col1:
-        st.button("⬅ Voltar", on_click=voltar_step, key=f"voltar_{st.session_state.step}", args=(), kwargs={}, help=None)
+        st.button("⬅ Voltar", on_click=voltar_step)
     with col2:
         if preenchido:
-            st.button(label_proximo, on_click=avancar_step, key=f"avancar_{st.session_state.step}")
+            st.button(label_proximo, on_click=avancar_step)
 
 # -----------------------------
 # Wizard passo a passo com layout consistente
