@@ -155,7 +155,7 @@ def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
 # -------------------------------------------------
 # 🧾 BOTÃO DE RESET GLOBAL
 # -------------------------------------------------
-if st.button("🔄 Resetar Tudo"):
+if st.button("🔄 Limpar dados"):
     for k in list(st.session_state.keys()):
         del st.session_state[k]
     st.rerun()
