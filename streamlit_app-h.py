@@ -68,11 +68,18 @@ def gerar_template_xlsx(tipo):
     return output.getvalue()
 
 def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
-    st.write(f"### {nome}")
-    col1, col2 = st.columns([1,1])
+    st.markdown(f"### {nome}")
     lista = lista_padrao.copy()
+    
+    # Botão de download e uploader lado a lado
+    col1, col2 = st.columns([1,1])
     with col1:
-        st.download_button(f"📥 Modelo {nome}", data=gerar_template_xlsx(tipo_arquivo), file_name=f"{nome}_template.xlsx", key=f"dl_{nome}")
+        st.download_button(
+            f"📥 Modelo {nome}", 
+            data=gerar_template_xlsx(tipo_arquivo), 
+            file_name=f"{nome}_template.xlsx", 
+            key=f"dl_{nome}"
+        )
     with col2:
         arquivo = st.file_uploader(f"Importar {nome}", type=["xlsx"], key=f"upload_{key}")
         if arquivo:
@@ -86,9 +93,13 @@ def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
                     st.error("Arquivo inválido: coluna 'codigo' não encontrada")
             except Exception as e:
                 st.error(f"Erro ao ler arquivo: {e}")
-    entrada = st.text_area(f"{nome} (separados por vírgula)", value=",".join(lista))
-    lista = [x.strip() for x in entrada.split(",") if x.strip()]
+
+    # Text area logo abaixo, compacta
+    lista_str = ",".join(lista)
+    lista_text = st.text_area(f"{nome} (separados por vírgula)", value=lista_str, height=60)
+    lista = [x.strip() for x in lista_text.split(",") if x.strip()]
     st.session_state[f"lista_{key}"] = lista
+    
     return len(lista) > 0
 
 def gerar_registros_csv(n):
@@ -257,15 +268,6 @@ elif step == 5:
 elif step == 6:
     st.markdown("### 💾 Gerar CSV com dados")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
-
-    def gerar_csv():
-        registros = gerar_registros_csv(num_registros)
-        df = pd.DataFrame(registros, columns=[
-            "documento","natureza","valor","unidade","data_venc","data_liq",
-            "descricao","cliente_fornecedor","tesouraria","centro_custo","tipo_documento"
-        ])
-        st.session_state.registros_gerados = df
-        st.session_state.csv_gerado = True
 
     botoes_step(preenchido=True, label_proximo="Gerar CSV")
 
