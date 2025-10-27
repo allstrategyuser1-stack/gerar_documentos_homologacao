@@ -16,7 +16,7 @@ st.title("Gerador de documentos fictícios (Fluxo) (v2.0.0)")
 # ---------------------------------------------
 if st.sidebar.button("🔁 Resetar todos os dados"):
     st.session_state.clear()
-    st.experimental_rerun()
+    st.rerun()
 
 # ---------------------------------------------
 # Inicialização do session_state
@@ -129,7 +129,7 @@ for item in menu_itens:
     else:
         if st.sidebar.button(item):
             st.session_state.aba_ativa = item
-            st.experimental_rerun()
+            st.rerun()
 
 opcao = st.session_state.aba_ativa
 
