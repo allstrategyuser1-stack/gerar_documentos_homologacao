@@ -257,7 +257,7 @@ elif step == 1:
 
 # Passo 2 - Classificações
 elif step == 2:
-    st.markdown("<h1 style='text-align:center; color:#5a7be0;'>Classificações financeiras</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align:left; color:#000000;'>Classificações financeiras</h2>", unsafe_allow_html=True)
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     botoes_step(entradas_ok and saidas_ok, "Próximo: Tesouraria ➡")
