@@ -73,7 +73,7 @@ st.markdown("""
     margin-bottom: 15px;
     box-shadow: 0 1px 6px rgba(0,0,0,0.1);
 }
-.card-step h3 {
+.card-step h2 {
     margin-top: 0;
 }
 </style>
@@ -277,7 +277,7 @@ elif step == 1:
     botoes_step(preenchido, "Próximo: Classificações ➡")
 
 elif step == 2:
-    st.markdown("<div class='card-step'><h3>Classificações Financeiras</h3></div>", unsafe_allow_html=True)
+    st.markdown("<div class='card-step'><h2>Classificações Financeiras</h2></div>", unsafe_allow_html=True)
     entradas_ok = atualizar_lista_card("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista_card("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     botoes_step(entradas_ok and saidas_ok, "Próximo: Tesouraria ➡")
