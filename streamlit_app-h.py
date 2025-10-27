@@ -93,15 +93,29 @@ def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
 
 def gerar_registros_csv(n):
     registros = []
-    for id_counter in range(1,n+1):
-        tipo = random.choice(["E","S"])
+    hoje = datetime.today()
+    
+    for id_counter in range(1, n+1):
+        tipo = random.choice(["E", "S"])
         descricao = random.choice(st.session_state.entradas_codigos if tipo=="E" else st.session_state.saidas_codigos)
-        valor = round(random.uniform(1,101000),2)
-        vencimento = st.session_state.data_inicio + timedelta(days=random.randint(0,(st.session_state.data_fim - st.session_state.data_inicio).days))
-        pagamento = vencimento + timedelta(days=random.randint(-5,5)) if random.random()<0.5 else ""
+        valor = round(random.uniform(1, 101000), 2)
+        
+        # Datas aleatórias dentro do período
+        vencimento = st.session_state.data_inicio + timedelta(days=random.randint(0, (st.session_state.data_fim - st.session_state.data_inicio).days))
+        
+        # Pagamento aleatório ±5 dias do vencimento, 50% de chance de existir
+        pagamento = vencimento + timedelta(days=random.randint(-5,5)) if random.random() < 0.5 else None
+        
+        # Garantir que pagamento não seja maior que hoje
+        if pagamento and pagamento > hoje:
+            pagamento = hoje
+        
+        # Converte para string dd/mm/aaaa
         venc_str = vencimento.strftime("%d/%m/%Y")
-        pagamento_str = pagamento.strftime("%d/%m/%Y") if pagamento != "" else ""
+        pagamento_str = pagamento.strftime("%d/%m/%Y") if pagamento else ""
+        
         cliente_fornecedor = f"C{random.randint(1,50)}" if tipo=="E" else f"F{random.randint(1,50)}"
+        
         registros.append([
             id_counter, tipo, valor, random.choice(st.session_state.lista_unidades),
             venc_str, pagamento_str, descricao, cliente_fornecedor,
@@ -175,7 +189,7 @@ if step == 0:
     elif data_fim is None:
         st.error("Data final inválida! Use o formato dd/mm/aaaa")
     elif data_fim < data_inicio:
-        st.error("A data final não pode ser menor que a inicial!")
+        st.error("A data final não pode ser anterior à data inicial!")
     else:
         st.button(
             "Próximo: Unidades",
@@ -258,7 +272,7 @@ elif step == 6:
     def gerar_csv():
         registros = gerar_registros_csv(num_registros)
         df = pd.DataFrame(registros, columns=[
-            "documento","tipo","valor","cod_unidade","data_venc","data_liq",
+            "documento","natureza","valor","unidade","data_venc","data_liq",
             "descricao","cliente_fornecedor","tesouraria","centro_custo","tipo_documento"
         ])
         st.session_state.registros_gerados = df
