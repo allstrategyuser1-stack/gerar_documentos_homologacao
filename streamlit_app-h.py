@@ -116,12 +116,12 @@ def exibir_dashboard(df):
 # -----------------------------
 
 # Expander de Observações (minimizado)
-with st.expander("📝 Observações da função (clique para abrir)", expanded=False):
+with st.expander("Observações da função", expanded=False):
     st.info("""
-    - Gera documentos fictícios de entradas e saídas financeiras.
-    - Campos devem seguir os códigos cadastrados.
-    - Período definido pelas datas inicial e final.
-    - Datas de vencimento e liquidação podem ser aleatórias.
+        - Gera documentos fictícios de entradas e saídas financeiras.
+        - Os parâmetros devem ser preenchidos/importados com os códigos cadastrados no Fluxo.
+        - O período de geração é determinado pelas datas inicial e final.
+        - Datas identificam vencimento; liquidação pode ser aleatória.
     """)
 
 # Função para avançar passo sem usar experimental_rerun
