@@ -25,14 +25,25 @@ def init_state(key, default):
     if key not in st.session_state:
         st.session_state[key] = default
 
+# Garante que todos os estados necessários existam
 init_state("data_inicio", datetime(2025, 1, 1))
 init_state("data_fim", datetime(2025, 12, 31))
-init_state("lista_unidades", [])
-init_state("entradas_codigos", [])
-init_state("saidas_codigos", [])
-init_state("lista_tesouraria", [])
-init_state("lista_cc", [])
-init_state("lista_tipos", [])
+init_state("lista_unidades", [""])
+init_state("entradas_codigos", [""])
+init_state("saidas_codigos", [""])
+init_state("lista_tesouraria", [""])
+init_state("lista_cc", [""])
+init_state("lista_tipos", [""])
+
+# Cria variáveis locais para facilitar o uso
+data_inicio = st.session_state.data_inicio
+data_fim = st.session_state.data_fim
+lista_unidades = st.session_state.lista_unidades
+entradas_codigos = st.session_state.entradas_codigos
+saidas_codigos = st.session_state.saidas_codigos
+lista_tesouraria = st.session_state.lista_tesouraria
+lista_cc = st.session_state.lista_cc
+lista_tipos = st.session_state.lista_tipos
 
 # ---------------------------------------------
 # Função para gerar templates XLSX
@@ -178,7 +189,7 @@ elif opcao == "Unidades":
     col1, col2 = st.columns(2)
     with col1:
         st.download_button(
-            "📥 Baixar modelo de Unidades (XLSX)",
+            "Baixar modelo(XLSX)",
             data=gerar_template_xlsx("unidades"),
             file_name="unidades_template.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -201,6 +212,8 @@ elif opcao == "Unidades":
         unidades_input = st.text_area("Lista de unidades (separadas por vírgula)", value="01,02,03")
         lista_unidades = [u.strip() for u in unidades_input.split(",") if u.strip()]
 
+    st.session_state.lista_unidades = lista_unidades
+
 # ============================
 # Classificações
 # ============================
@@ -210,7 +223,7 @@ elif opcao == "Classificações":
     with col_esq:
         st.subheader("Entradas")
         st.download_button(
-            "📥 Baixar modelo de Entradas",
+            "Baixar modelo",
             data=gerar_template_xlsx("entrada"),
             file_name="classificacoes_entrada.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -220,7 +233,7 @@ elif opcao == "Classificações":
     with col_dir:
         st.subheader("Saídas")
         st.download_button(
-            "📥 Baixar modelo de Saídas",
+            "Baixar modelo",
             data=gerar_template_xlsx("saida"),
             file_name="classificacoes_saida.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -259,6 +272,9 @@ elif opcao == "Classificações":
     if not saidas_codigos:
         saidas_input = st.text_area("Classificações de Saída (separadas por vírgula)", value="S001,S002,S003")
         saidas_codigos = [s.strip() for s in saidas_input.split(",") if s.strip()]
+    
+    st.session_state.entradas_codigos = entradas_codigos
+    st.session_state.saidas_codigos = saidas_codigos
 
 # ============================
 # Tesouraria
@@ -267,7 +283,7 @@ elif opcao == "Tesouraria":
     st.header("Identificação da Tesouraria")
     col1, col2 = st.columns(2)
     with col1:
-        st.download_button("📥 Baixar modelo de Tesouraria", data=gerar_template_xlsx("tesouraria"),
+        st.download_button("Baixar modelo", data=gerar_template_xlsx("tesouraria"),
                            file_name="tesouraria_template.xlsx",
                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     with col2:
@@ -287,6 +303,8 @@ elif opcao == "Tesouraria":
         tes_input = st.text_area("Contas de Tesouraria (separadas por vírgula)", value="T001,T002")
         lista_tesouraria = [t.strip() for t in tes_input.split(",") if t.strip()]
 
+    st.session_state.lista_tesouraria = lista_tesouraria
+
 # ============================
 # Centro de Custo (Opcional)
 # ============================
@@ -294,7 +312,7 @@ elif opcao == "Centro de Custo (Opcional)":
     st.header("Centro de Custo (Opcional)")
     col1, col2 = st.columns(2)
     with col1:
-        st.download_button("📥 Baixar modelo de Centro de Custo", data=gerar_template_xlsx("centro_custo"),
+        st.download_button("Baixar modelo", data=gerar_template_xlsx("centro_custo"),
                            file_name="centro_custo_template.xlsx",
                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     with col2:
@@ -314,6 +332,8 @@ elif opcao == "Centro de Custo (Opcional)":
         cc_input = st.text_area("Centros de Custo (separados por vírgula)", value="CC01,CC02")
         lista_cc = [c.strip() for c in cc_input.split(",") if c.strip()]
 
+    st.session_state.lista_cc = lista_cc
+
 # ============================
 # Tipos de Documento (Opcional)
 # ============================
@@ -321,7 +341,7 @@ elif opcao == "Tipos de Documento (Opcional)":
     st.header("Tipos de Documento (Opcional)")
     col1, col2 = st.columns(2)
     with col1:
-        st.download_button("📥 Baixar modelo de Tipos de Documento", data=gerar_template_xlsx("tipos_doc"),
+        st.download_button("Baixar modelo", data=gerar_template_xlsx("tipos_doc"),
                            file_name="tipos_documento_template.xlsx",
                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     with col2:
@@ -340,6 +360,9 @@ elif opcao == "Tipos de Documento (Opcional)":
     else:
         tipos_input = st.text_area("Tipos de Documento (separados por vírgula)", value="NF,REC")
         lista_tipos = [t.strip() for t in tipos_input.split(",") if t.strip()]
+
+    st.session_state.lista_tipos = lista_tipos
+
 
 # ============================
 # Gerar CSV
