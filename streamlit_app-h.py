@@ -188,8 +188,8 @@ elif step == 5:
 
 # Passo 6 - Gerar CSV
 elif step == 6:
-    st.markdown("### 💾 Gerar Arquivo CSV")
-    num_registros = st.number_input("Número de registros", min_value=10, max_value=1000, value=100)
+    st.markdown("### 💾 Gerar CSV com dados")
+    num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
 
     # Função que gera o CSV e atualiza o session_state
     def gerar_csv():
@@ -214,7 +214,7 @@ elif step == 6:
         st.download_button("📥 Download CSV", data=csv_buffer.getvalue(), file_name="documentos.csv", mime="text/csv")
 
         # Dashboard com quantidade e valor separados por Entradas e Saídas
-        st.subheader("📊 Dashboard de Registros e Valores")
+        st.subheader("📊 Registros e Valores")
         entradas_valor = df[df['tipo']=='E']['valor'].sum()
         saidas_valor = df[df['tipo']=='S']['valor'].sum()
         entradas_qtd = df[df['tipo']=='E'].shape[0]
