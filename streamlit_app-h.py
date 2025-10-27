@@ -17,7 +17,7 @@ st.markdown("<h1 style='text-align:center; color:#4B8BBE;'>📄 Gerador de Docum
 st.sidebar.markdown("## 🔧 Configurações")
 if st.sidebar.button("🔁 Resetar todos os dados"):
     st.session_state.clear()
-    st.experimental_rerun()
+    st.rerun()
 
 # ---------------------------------------------
 # Inicialização do session_state
