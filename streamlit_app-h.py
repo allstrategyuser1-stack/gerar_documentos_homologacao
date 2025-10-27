@@ -256,6 +256,7 @@ elif step == 1:
     botoes_step(preenchido, "Próximo: Classificações ➡")
 
 # Passo 2 - Classificações
+st.markdown("<h1 style='>Gerador de Documentos Fictícios (Fluxo)</h1>", unsafe_allow_html=True)
 elif step == 2:
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
