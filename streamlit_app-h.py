@@ -29,21 +29,6 @@ init_state("lista_tipos", ["NF", "REC"])
 init_state("registros_gerados", [])
 
 # -----------------------------
-# CSS global para botão amarelo claro
-# -----------------------------
-st.markdown("""
-<style>
-div.stButton > button {
-    background-color: #fff59d !important;
-    color: black !important;
-    font-weight: bold;
-    border-radius: 8px;
-    padding: 0.5em 1em;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# -----------------------------
 # Funções auxiliares
 # -----------------------------
 def gerar_template_xlsx(tipo):
