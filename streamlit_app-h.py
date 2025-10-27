@@ -145,26 +145,24 @@ with st.expander("Observações da função", expanded=False):
 # -----------------------------
 step = st.session_state.step
 
+# -----------------------------
 # Passo 0 - Período
+# -----------------------------
 if step == 0:
     st.markdown("### 📅 Selecionar Período")
     
-    # Obtenção das datas
-    data_inicio_input = st.date_input("Data inicial", value=st.session_state.data_inicio)
-    data_fim_input = st.date_input("Data final", value=st.session_state.data_fim)
+    # Mantém objetos datetime.date no session_state
+    data_inicio = st.date_input("Data inicial", value=st.session_state.data_inicio)
+    data_fim = st.date_input("Data final", value=st.session_state.data_fim)
     
-    if data_fim_input < data_inicio_input:
-        st.error("A data final não pode anterior à data inicial!")
+    if data_fim < data_inicio:
+        st.error("A data final não pode ser anterior à data inicial!")
     else:
-        # Converte para string no formato dd/mm/aaaa
-        data_inicio_str = data_inicio_input.strftime("%dd/%mm/%YYYY")
-        data_fim_str = data_fim_input.strftime("%dd/%mm/%YYYY")
-        
         st.button(
             "Próximo: Unidades",
             on_click=lambda: st.session_state.update({
-                "data_inicio": data_inicio_str,
-                "data_fim": data_fim_str
+                "data_inicio": data_inicio,
+                "data_fim": data_fim
             }) or avancar_step()
         )
 
@@ -200,12 +198,44 @@ elif step == 5:
     if preenchido:
         st.button("Próximo: Gerar CSV", on_click=avancar_step)
 
+# -----------------------------
 # Passo 6 - Gerar CSV
+# -----------------------------
 elif step == 6:
     st.markdown("### 💾 Gerar CSV com dados")
-    num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
+    
+    num_registros = st.number_input(
+        "Número de registros", min_value=10, max_value=10000, value=100
+    )
 
-    # Função que gera o CSV e atualiza o session_state
+    # Função que gera registros com datas já no formato dd/mm/aaaa
+    def gerar_registros_csv(n):
+        registros = []
+        for id_counter in range(1, n+1):
+            tipo = random.choice(["E", "S"])
+            descricao = random.choice(st.session_state.entradas_codigos if tipo=="E" else st.session_state.saidas_codigos)
+            valor = round(random.uniform(1, 101000), 2)
+            
+            # Datas aleatórias dentro do período
+            vencimento = st.session_state.data_inicio + timedelta(days=random.randint(0, (st.session_state.data_fim - st.session_state.data_inicio).days))
+            pagamento = vencimento + timedelta(days=random.randint(-5,5)) if random.random() < 0.5 else None
+            
+            # Converte para string dd/mm/aaaa
+            venc_str = vencimento.strftime("%d/%m/%Y")
+            pagamento_str = pagamento.strftime("%d/%m/%Y") if pagamento else ""
+            
+            cliente_fornecedor = f"C{random.randint(1,50)}" if tipo=="E" else f"F{random.randint(1,50)}"
+            
+            registros.append([
+                id_counter, tipo, valor, random.choice(st.session_state.lista_unidades),
+                venc_str, pagamento_str, descricao, cliente_fornecedor,
+                random.choice(st.session_state.lista_tesouraria) if st.session_state.lista_tesouraria else "",
+                random.choice(st.session_state.lista_cc) if st.session_state.lista_cc else "",
+                random.choice(st.session_state.lista_tipos) if st.session_state.lista_tipos else ""
+            ])
+        return registros
+
+    # Função que gera CSV e atualiza session_state
     def gerar_csv():
         registros = gerar_registros_csv(num_registros)
         df = pd.DataFrame(registros, columns=[
@@ -213,9 +243,9 @@ elif step == 6:
             "descricao","cliente_fornecedor","tesouraria","centro_custo","tipo_documento"
         ])
         st.session_state.registros_gerados = df
-        st.session_state.csv_gerado = True  # flag para exibir download e dashboards
+        st.session_state.csv_gerado = True
 
-    # Botão amarelo claro
+    # Botão amarelo claro para gerar CSV
     st.button("Gerar CSV", on_click=gerar_csv)
 
     # Após gerar CSV, exibe download e dashboards
@@ -225,7 +255,12 @@ elif step == 6:
         # Download CSV
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False)
-        st.download_button("📥 Download CSV", data=csv_buffer.getvalue(), file_name="documentos.csv", mime="text/csv")
+        st.download_button(
+            "📥 Download CSV", 
+            data=csv_buffer.getvalue(), 
+            file_name="documentos.csv", 
+            mime="text/csv"
+        )
 
         # Dashboard com quantidade e valor separados por Entradas e Saídas
         st.subheader("📊 Registros e Valores")
