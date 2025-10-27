@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 # Configuração inicial
 # -----------------------------
 st.set_page_config(page_title="Gerador de documentos fictícios", layout="wide")
-st.markdown("<h1 style='text-align:center; color:#4B8BBE;'>📄 Gerador de Documentos Fictícios (Fluxo)</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center; color:#5a7be0;'>Gerador de Documentos Fictícios (Fluxo)</h1>", unsafe_allow_html=True)
 
 # -----------------------------
 # Inicialização do session_state
@@ -148,12 +148,26 @@ step = st.session_state.step
 # Passo 0 - Período
 if step == 0:
     st.markdown("### 📅 Selecionar Período")
-    data_inicio = st.date_input("Data inicial", value=st.session_state.data_inicio)
-    data_fim = st.date_input("Data final", value=st.session_state.data_fim)
-    if data_fim < data_inicio:
+    
+    # Obtenção das datas
+    data_inicio_input = st.date_input("Data inicial", value=st.session_state.data_inicio)
+    data_fim_input = st.date_input("Data final", value=st.session_state.data_fim)
+    
+    if data_fim_input < data_inicio_input:
         st.error("A data final não pode ser menor que a inicial!")
     else:
-        st.button("Próximo: Unidades", on_click=lambda: st.session_state.update({"data_inicio": data_inicio, "data_fim": data_fim}) or avancar_step())
+        # Converte para string no formato dd/mm/aaaa
+        data_inicio_str = data_inicio_input.strftime("%d/%m/%Y")
+        data_fim_str = data_fim_input.strftime("%d/%m/%Y")
+        
+        st.button(
+            "Próximo: Unidades",
+            on_click=lambda: st.session_state.update({
+                "data_inicio": data_inicio_str,
+                "data_fim": data_fim_str
+            }) or avancar_step()
+        )
+
 
 # Passo 1 - Unidades
 elif step == 1:
