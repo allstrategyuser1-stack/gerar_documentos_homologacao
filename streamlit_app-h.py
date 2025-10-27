@@ -62,6 +62,24 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------
+# CSS para card de classificações
+# -----------------------------
+st.markdown("""
+<style>
+.card-step {
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+}
+.card-step h3 {
+    margin-top: 0;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
 # Funções auxiliares
 # -----------------------------
 def gerar_template_xlsx(tipo):
@@ -259,7 +277,20 @@ elif step == 1:
     botoes_step(preenchido, "Próximo: Classificações ➡")
 
 elif step == 2:
-    st.markdown("<div class='card-step'><h3>Classificações Financeiras</h3></div>", unsafe_allow_html=True)
+    st.markdown("""
+        <style>
+        .card-step {
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+        }
+        .card-step h3 {
+        margin-top: 0;
+        }
+        </style>
+        """, unsafe_allow_html=True)
     entradas_ok = atualizar_lista_card("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista_card("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     botoes_step(entradas_ok and saidas_ok, "Próximo: Tesouraria ➡")
