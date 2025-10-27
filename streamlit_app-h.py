@@ -99,26 +99,43 @@ if "aba_ativa" not in st.session_state:
 st.sidebar.markdown(
     """
     <style>
+    /* Força os botões do menu lateral a terem largura total e tamanho consistente */
     .menu-botao {
-        padding: 10px 15px;
+        display: block;
+        width: 100%;                 /* ocupa toda a largura da sidebar */
+        box-sizing: border-box;      /* inclui bordas e padding na largura total */
+        text-align: center;          /* centraliza o texto */
+        padding: 12px 10px;
         border-radius: 8px;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         font-weight: 500;
         color: #444;
         background-color: #f5f5f5;
         border: 1px solid #ddd;
         transition: all 0.2s ease-in-out;
         cursor: pointer;
-        text-align: left;
     }
+
     .menu-botao:hover {
-        background-color: #ffe082; /* dourado claro ao passar o mouse */
+        background-color: #ffe082;   /* dourado claro ao passar o mouse */
     }
+
     .menu-ativo {
         background-color: #FFD700 !important; /* dourado */
         color: black !important;
         font-weight: 700 !important;
         border: 1px solid #d4af37;
+    }
+
+    /* Remove margem interna padrão da barra lateral */
+    section[data-testid="stSidebar"] > div:first-child {
+        padding: 0 10px;
+    }
+
+    /* Faz todos os botões ficarem iguais em altura */
+    .menu-botao, .menu-ativo {
+        height: 45px;
+        line-height: 20px;
     }
     </style>
     """,
