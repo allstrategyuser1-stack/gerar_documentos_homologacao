@@ -56,6 +56,10 @@ TEMPLATES = {
     "tipos_doc": ("tipos_doc", ["NF", "REC"], ["Nota Fiscal", "Recibo"])
 }
 
+# Função para formatar valores em Real brasileiro
+def formatar_brl(valor):
+    return f"R$ {valor:,.2f}".replace(',', 'v').replace('.', ',').replace('v', '.')
+
 def gerar_template_xlsx(tipo):
     output = io.BytesIO()
     sheet, codigos, nomes = TEMPLATES.get(tipo, ("Sheet1", [], []))
@@ -98,40 +102,106 @@ def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
     return bool(lista)
 
 def gerar_registros_csv(n):
-    data_inicio, data_fim = st.session_state.data_inicio, st.session_state.data_fim
+    # Garante que data_inicio e data_fim sejam date
+    data_inicio = st.session_state.data_inicio
+    data_fim = st.session_state.data_fim
+    if isinstance(data_inicio, datetime):
+        data_inicio = data_inicio.date()
+    if isinstance(data_fim, datetime):
+        data_fim = data_fim.date()
+
     dias_range = (data_fim - data_inicio).days
 
+    # Natureza e valores
     tipos = [random.choice(["E", "S"]) for _ in range(n)]
     valores = [round(random.uniform(1, 101000), 2) for _ in range(n)]
     vencimentos = [data_inicio + timedelta(days=random.randint(0, dias_range)) for _ in range(n)]
 
-    def pagamento_aleatorio(v):
+    # Função de pagamento aleatório
+    def pagamento_aleatorio(v: datetime.date):
         if random.random() < 0.5:
             p = v + timedelta(days=random.randint(-5, 5))
-            return max(min(p, datetime.today()), data_inicio)
+            hoje = datetime.today().date()
+            p = max(min(p, hoje), data_inicio)
+            return p
         return None
 
     pagamentos = [pagamento_aleatorio(v) for v in vencimentos]
-    def escolha(lista): return random.choice(lista) if lista else ""
+
+    def escolha(lista): 
+        return random.choice(lista) if lista else ""
+
+    # Gera dt_emissao e dt_inclusao (10 a 30 dias antes do vencimento)
+    dt_emissao = []
+    dt_inclusao = []
+    for v in vencimentos:
+        dias_antes_emissao = random.randint(20, 30)
+        dias_antes_inclusao = random.randint(10, 25)
+        emissao = v - timedelta(days=dias_antes_emissao)
+        inclusao = v - timedelta(days=dias_antes_inclusao)
+        emissao = max(emissao, data_inicio)
+        inclusao = max(inclusao, emissao)
+        dt_emissao.append(emissao.strftime("%d/%m/%Y"))
+        dt_inclusao.append(inclusao.strftime("%d/%m/%Y"))
+
+    # Gera descrições
+    classificacao = [
+        random.choice(st.session_state.entradas_codigos if t == "E" else st.session_state.saidas_codigos)
+        for t in tipos
+    ]
+
+    # Modelos de frases variadas
+    frases_entrada = [
+        "Recebimento registrado na unidade {unid}, referente ao documento {tipo_doc} código {desc}. Lançamento automático de entrada para controle financeiro.",
+        "Entrada vinculada ao documento {tipo_doc} ({desc}) na unidade {unid}, referente a operação padrão do sistema.",
+        "Documento {tipo_doc} código {desc} processado como recebimento pela unidade {unid}. Controle gerado automaticamente."
+    ]
+
+    frases_saida = [
+        "Pagamento efetuado pela unidade {unid}, referente ao documento {tipo_doc} código {desc}. Lançamento automático de saída para controle contábil.",
+        "Saída vinculada ao documento {tipo_doc} ({desc}) da unidade {unid}, referente a operação de rotina.",
+        "Documento {tipo_doc} código {desc} processado como pagamento pela unidade {unid}. Registro gerado automaticamente."
+    ]
+
+    # Monta históricos personalizados
+    historicos = []
+    for i in range(n):
+        tipo = tipos[i]
+        desc = classificacao[i]
+        tipo_doc = escolha(st.session_state.lista_tipos)
+        unidade = escolha(st.session_state.lista_unidades)
+        if tipo == "E":
+            modelo = random.choice(frases_entrada)
+        else:
+            modelo = random.choice(frases_saida)
+        historicos.append(modelo.format(unid=unidade, tipo_doc=tipo_doc, desc=desc))
 
     registros = pd.DataFrame({
-        "id": range(1, n+1),
+        "documento": range(1, n + 1),
         "natureza": tipos,
         "valor": valores,
         "unidade": [escolha(st.session_state.lista_unidades) for _ in range(n)],
+        "centro_custo": [escolha(st.session_state.lista_cc) for _ in range(n)],
+        "tesouraria": [escolha(st.session_state.lista_tesouraria) for _ in range(n)],
+        "tipo_doc": [escolha(st.session_state.lista_tipos) for _ in range(n)],
+        "classificacao": classificacao,
+        "projeto": "",
+        "prev_s_doc": "N",
+        "suspenso": "N",
         "vencimento": [v.strftime("%d/%m/%Y") for v in vencimentos],
         "pagamento": [p.strftime("%d/%m/%Y") if p else "" for p in pagamentos],
-        "descricao": [
-            random.choice(st.session_state.entradas_codigos if t=="E" else st.session_state.saidas_codigos)
-            for t in tipos
-        ],
+        "dt_emissao": dt_emissao,
+        "dt_inclusao": dt_inclusao,
+        "pend_aprov": "N",
+        "erp_origem": "",
+        "erp_uuid": "",
+        "historico": historicos,
         "cliente_fornecedor": [
-            f"{'C' if t=='E' else 'F'}{random.randint(1,50)}" for t in tipos
+            f"{'C' if t == 'E' else 'F'}{random.randint(1, 50)}" for t in tipos
         ],
-        "tesouraria": [escolha(st.session_state.lista_tesouraria) for _ in range(n)],
-        "centro_custo": [escolha(st.session_state.lista_cc) for _ in range(n)],
-        "tipo_doc": [escolha(st.session_state.lista_tipos) for _ in range(n)]
+        "doc_edit": "N",
     })
+
     return registros
 
 # -------------------------------------------------
@@ -145,12 +215,13 @@ def voltar_step():
         st.session_state.step -= 1
 
 def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
+    step = st.session_state.step
     col1, col2 = st.columns([1, 1])
     with col1:
-        st.button("⬅ Voltar", on_click=voltar_step)
+        st.button("⬅ Voltar", on_click=voltar_step, key=f"voltar_{step}")
     with col2:
         if preenchido:
-            st.button(label_proximo, on_click=avancar_step)
+            st.button(label_proximo, on_click=avancar_step, key=f"proximo_{step}")
 
 # -------------------------------------------------
 # 🧾 BOTÃO DE RESET GLOBAL
@@ -166,17 +237,17 @@ if st.button("🔄 Limpar dados"):
 with st.expander("ℹ️ Observações da função", expanded=False):
     st.info("""
         - Gera um arquivo com documentos fictícios de entradas e saídas financeiras baseados nos parâmetros informados.
-            - Os parâmetros devem ser preenchidos/importados com os códigos cadastrados no Fluxo.
-        - O período de geração define as datas de vencimento e liquidação.
+        - O período define o vencimento e a liquidação é aleatória.
+        - O limite máximo atual de documentos por arquivo é de 10.000.
     """)
 
 # -------------------------------------------------
 # 🧭 FLUXO PRINCIPAL (WIZARD)
 # -------------------------------------------------
-step = st.session_state.step
+step = max(0, min(st.session_state.step, 6))
 st.progress((step + 1) / 7)
 
-# Passo 0 - Período
+# Passos do fluxo
 if step == 0:
     st.markdown("### 📅 Selecionar Período")
     data_inicio_str = st.text_input("Data inicial", value=st.session_state.data_inicio.strftime("%d/%m/%Y"))
@@ -206,60 +277,77 @@ if step == 0:
             }) or avancar_step()
         )
 
-# Passo 1 - Unidades
 elif step == 1:
     preenchido = atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
     botoes_step(preenchido, "Próximo: Classificações ➡")
 
-# Passo 2 - Classificações
 elif step == 2:
     st.markdown("<h2>Classificações financeiras</h2>", unsafe_allow_html=True)
     entradas_ok = atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     saidas_ok = atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     botoes_step(entradas_ok and saidas_ok, "Próximo: Tesouraria ➡")
 
-# Passo 3 - Tesouraria
 elif step == 3:
     preenchido = atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
     botoes_step(preenchido, "Próximo: Centro de Custo ➡")
 
-# Passo 4 - Centro de Custo
 elif step == 4:
     preenchido = atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
     botoes_step(preenchido, "Próximo: Tipos de Documento ➡")
 
-# Passo 5 - Tipos de Documento
 elif step == 5:
     preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
     botoes_step(preenchido, "Próximo: Gerar CSV ➡")
 
-# Passo 6 - Geração CSV
 elif step == 6:
     st.markdown("### 💾 Gerar CSV com dados")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
 
+    # --- Botões de navegação (somente voltar aqui) ---
+    col1, _ = st.columns([1, 1])
+    with col1:
+        st.button("⬅ Voltar", on_click=voltar_step, key="voltar_final")
+
+    # --- Geração de registros ---
     if st.button("Gerar Registros"):
         df = gerar_registros_csv(num_registros)
         st.session_state.registros_gerados = df
         st.session_state.csv_gerado = True
 
-    botoes_step(preenchido=True, label_proximo="⬅ Voltar")
-
+    # --- Exibição dos resultados ---
     if st.session_state.csv_gerado:
-        df = st.session_state.registros_gerados
-        csv_buffer = io.StringIO()
-        df.to_csv(csv_buffer, index=False)
-        st.download_button("📥 Download CSV", data=csv_buffer.getvalue(),
-                           file_name="documentos.csv", mime="text/csv")
+        df = st.session_state.registros_gerados.copy()
 
+        # Cria coluna numérica auxiliar
+        df["valor_num"] = df["valor"].astype(float)
+
+        # Formata apenas para o CSV (sem R$, com vírgula decimal e ponto milhar)
+        df_csv = df.copy()
+        df_csv["valor"] = df_csv["valor_num"].apply(
+            lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
+        )
+        df_csv = df_csv.drop(columns=["valor_num"])
+
+        # Gera CSV com separador ;
+        csv_buffer = io.StringIO()
+        df_csv.to_csv(csv_buffer, index=False, sep=";", encoding="utf-8-sig")
+
+        st.download_button(
+            "📥 Download CSV",
+            data=csv_buffer.getvalue(),
+            file_name="documentos.csv",
+            mime="text/csv"
+        )
+
+        # Exibe resumo formatado
         st.subheader("📊 Resumo de Registros")
-        entradas = df[df['natureza'] == 'E']
-        saidas = df[df['natureza'] == 'S']
+        entradas = df[df["natureza"] == "E"]
+        saidas = df[df["natureza"] == "S"]
 
         col1, col2 = st.columns(2)
         with col1:
             st.metric("Entradas", entradas.shape[0])
-            st.metric("Valor total Entradas", f"R$ {entradas['valor'].sum():,.2f}")
+            st.metric("Valor total Entradas", formatar_brl(entradas["valor"].sum()))
         with col2:
             st.metric("Saídas", saidas.shape[0])
-            st.metric("Valor total Saídas", f"R$ {saidas['valor'].sum():,.2f}")
+            st.metric("Valor total Saídas", formatar_brl(saidas["valor"].sum()))
