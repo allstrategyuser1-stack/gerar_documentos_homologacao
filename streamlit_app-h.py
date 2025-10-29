@@ -316,7 +316,7 @@ elif step == 6:
 
     # --- Exibição dos resultados ---
     if st.session_state.csv_gerado:
-    df = st.session_state.registros_gerados.copy()
+        df = st.session_state.registros_gerados.copy()
 
     st.markdown("#### ✏️ Personalizar ordem das colunas do CSV")
 
