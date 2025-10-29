@@ -316,38 +316,64 @@ elif step == 6:
 
     # --- Exibição dos resultados ---
     if st.session_state.csv_gerado:
-        df = st.session_state.registros_gerados.copy()
+    df = st.session_state.registros_gerados.copy()
 
-        # Cria coluna numérica auxiliar
-        df["valor_num"] = df["valor"].astype(float)
+    st.markdown("#### ✏️ Personalizar ordem das colunas do CSV")
 
-        # Formata apenas para o CSV (sem R$, com vírgula decimal e ponto milhar)
-        df_csv = df.copy()
-        df_csv["valor"] = df_csv["valor_num"].apply(
-            lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
-        )
-        df_csv = df_csv.drop(columns=["valor_num"])
+    # Lista padrão de colunas
+    colunas_disponiveis = list(df.columns)
 
-        # Gera CSV com separador ;
-        csv_buffer = io.StringIO()
-        df_csv.to_csv(csv_buffer, index=False, sep=";", encoding="utf-8-sig")
+    # Mantém a ordem escolhida na sessão
+    if "ordem_colunas" not in st.session_state:
+        st.session_state.ordem_colunas = colunas_disponiveis
 
-        st.download_button(
-            "📥 Download CSV",
-            data=csv_buffer.getvalue(),
-            file_name="documentos.csv",
-            mime="text/csv"
-        )
+    # Multiselect para o usuário definir a ordem das colunas
+    ordem_escolhida = st.multiselect(
+        "Selecione e defina a ordem das colunas:",
+        options=colunas_disponiveis,
+        default=st.session_state.ordem_colunas,
+        key="ordem_colunas"
+    )
 
-        # Exibe resumo formatado
-        st.subheader("📊 Resumo de Registros")
-        entradas = df[df["natureza"] == "E"]
-        saidas = df[df["natureza"] == "S"]
+    # Botão para aplicar ordem
+    if st.button("🔃 Atualizar ordem das colunas"):
+        st.session_state.ordem_colunas = ordem_escolhida
+        st.success("Ordem atualizada!")
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Entradas", entradas.shape[0])
-            st.metric("Valor total Entradas", formatar_brl(entradas["valor"].sum()))
-        with col2:
-            st.metric("Saídas", saidas.shape[0])
-            st.metric("Valor total Saídas", formatar_brl(saidas["valor"].sum()))
+    # Reordena o DataFrame conforme escolha do usuário
+    df = df[st.session_state.ordem_colunas]
+
+    # Cria coluna numérica auxiliar
+    df["valor_num"] = df["valor"].astype(float)
+
+    # Formata apenas para o CSV (sem R$, com vírgula decimal e ponto milhar)
+    df_csv = df.copy()
+    df_csv["valor"] = df_csv["valor_num"].apply(
+        lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
+    )
+    df_csv = df_csv.drop(columns=["valor_num"])
+
+    # Gera CSV com separador ;
+    csv_buffer = io.StringIO()
+    df_csv.to_csv(csv_buffer, index=False, sep=";", encoding="utf-8-sig")
+
+    # Botão de download
+    st.download_button(
+        "📥 Download CSV",
+        data=csv_buffer.getvalue(),
+        file_name="documentos.csv",
+        mime="text/csv"
+    )
+
+    # Exibe resumo formatado
+    st.subheader("📊 Resumo de Registros")
+    entradas = df[df["natureza"] == "E"]
+    saidas = df[df["natureza"] == "S"]
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Entradas", entradas.shape[0])
+        st.metric("Valor total Entradas", formatar_brl(entradas["valor"].sum()))
+    with col2:
+        st.metric("Saídas", saidas.shape[0])
+        st.metric("Valor total Saídas", formatar_brl(saidas["valor"].sum()))
