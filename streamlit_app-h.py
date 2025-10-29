@@ -320,44 +320,53 @@ elif step == 6:
         df = st.session_state.registros_gerados.copy()
         colunas_disponiveis = list(map(str, df.columns))
 
-        # Inicializa estado
+        # Inicializa estado da lista temporária
         if "colunas_temp" not in st.session_state or not st.session_state.colunas_temp:
             st.session_state.colunas_temp = colunas_disponiveis.copy()
         if "ordem_colunas" not in st.session_state or not st.session_state.ordem_colunas:
             st.session_state.ordem_colunas = colunas_disponiveis.copy()
 
-        st.markdown("### 🧩 Reordenar colunas do CSV final (horizontal)")
+        # --- Botão para mostrar/ocultar reordenação ---
+        if "mostrar_reordenacao" not in st.session_state:
+            st.session_state.mostrar_reordenacao = False
 
-        # Caixa principal com borda e fundo cinza claro
-        with st.container():
-            st.markdown(
-                "<div style='padding:10px; border:1px solid #ccc; background-color:#f5f5f5; border-radius:5px;'>"
-                "<p>Arraste as colunas para definir a ordem desejada:</p></div>",
-                unsafe_allow_html=True
-            )
+        if st.button("🧩 Reordenar Colunas"):
+            st.session_state.mostrar_reordenacao = not st.session_state.mostrar_reordenacao
 
-            # Lista ordenável horizontal
+        if st.session_state.mostrar_reordenacao:
+            st.markdown("### Reordene as colunas do CSV final")
+
             from streamlit_sortables import sort_items
-            nova_ordem = sort_items(
-                items=st.session_state.colunas_temp,
-                direction="horizontal",
-                key="sort_colunas_horizontal"
-            )
 
-            if nova_ordem and isinstance(nova_ordem, list):
-                st.session_state.colunas_temp = nova_ordem
+            # Caixa com borda e fundo cinza
+            with st.container():
+                st.markdown(
+                    "<div style='padding:10px; border:1px solid #ccc; background-color:#f5f5f5; border-radius:5px;'>"
+                    "<p>Arraste as colunas para definir a ordem desejada:</p></div>",
+                    unsafe_allow_html=True
+                )
 
-            # Botões lado a lado
-            c1, c2 = st.columns([1, 1])
-            with c1:
-                if st.button("💾 Atualizar ordem"):
-                    st.session_state.ordem_colunas = st.session_state.colunas_temp.copy()
-                    st.success("✅ Ordem atualizada!")
-            with c2:
-                if st.button("🔄 Redefinir ordem"):
-                    st.session_state.colunas_temp = colunas_disponiveis.copy()
-                    st.session_state.ordem_colunas = colunas_disponiveis.copy()
-                    st.info("🔁 Ordem redefinida para padrão.")
+                # Lista horizontal para reordenação
+                nova_ordem = sort_items(
+                    items=st.session_state.colunas_temp,
+                    direction="horizontal",
+                    key="sort_colunas_horizontal"
+                )
+
+                if nova_ordem and isinstance(nova_ordem, list):
+                    st.session_state.colunas_temp = nova_ordem
+
+                # Botões Salvar / Resetar lado a lado
+                c1, c2 = st.columns([1, 1])
+                with c1:
+                    if st.button("💾 Salvar nova ordem"):
+                        st.session_state.ordem_colunas = st.session_state.colunas_temp.copy()
+                        st.success("✅ Nova ordem salva!")
+                with c2:
+                    if st.button("🔄 Resetar ordem"):
+                        st.session_state.colunas_temp = colunas_disponiveis.copy()
+                        st.session_state.ordem_colunas = colunas_disponiveis.copy()
+                        st.info("🔁 Ordem resetada para padrão.")
 
         st.info("📋 Ordem atual de exportação:")
         st.code(", ".join(st.session_state.ordem_colunas))
@@ -378,7 +387,7 @@ elif step == 6:
         st.subheader("👀 Prévia da Tabela Reordenada")
         st.dataframe(df_csv.head(2), use_container_width=True)
 
-        # Botões lado a lado: Download / Voltar
+        # Botões Download / Voltar lado a lado
         b1, b2, _ = st.columns([1, 1, 2])
         with b1:
             st.download_button(
