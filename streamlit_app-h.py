@@ -313,6 +313,8 @@ elif step == 6:
         df = gerar_registros_csv(num_registros)
         st.session_state.registros_gerados = df
         st.session_state.csv_gerado = True
+        st.session_state.colunas_temp = list(df.columns)
+        st.session_state.ordem_colunas = list(df.columns)
 
     # --- Exibição dos resultados ---
     if st.session_state.csv_gerado:
@@ -325,43 +327,54 @@ elif step == 6:
 
         st.markdown("### 🧩 Reordenar colunas do CSV final")
 
-        colunas_disponiveis = list(df.columns)
+        colunas_disponiveis = list(map(str, df.columns))  # garante strings
 
         # Inicializa variáveis de estado
-        if "colunas_temp" not in st.session_state:
+        if "colunas_temp" not in st.session_state or not st.session_state.colunas_temp:
             st.session_state.colunas_temp = colunas_disponiveis.copy()
-        if "ordem_colunas" not in st.session_state:
+        if "ordem_colunas" not in st.session_state or not st.session_state.ordem_colunas:
             st.session_state.ordem_colunas = colunas_disponiveis.copy()
 
-        # Interface de reordenação (sem aplicar ainda)
-        with st.expander("🔧 Clique para reordenar colunas", expanded=False):
-            nova_ordem = sort_items(st.session_state.colunas_temp, direction="vertical")
-            st.session_state.colunas_temp = nova_ordem
+        with st.expander("🔧 Clique para reordenar colunas", expanded=True):
+            st.write("Arraste as colunas para definir a ordem desejada:")
+            nova_ordem = sort_items(
+                items=st.session_state.colunas_temp,
+                direction="vertical",
+                key="sort_colunas"
+            )
 
-            if st.button("💾 Salvar nova ordem de colunas"):
+            # Atualiza ordem temporária
+            if nova_ordem and isinstance(nova_ordem, list):
+                st.session_state.colunas_temp = nova_ordem
+
+            # Botão para confirmar
+            if st.button("💾 Atualizar ordem"):
                 st.session_state.ordem_colunas = st.session_state.colunas_temp.copy()
-                st.success("✅ Nova ordem de colunas salva com sucesso!")
+                st.success("✅ Nova ordem de colunas atualizada!")
 
+        # Exibe a ordem salva
         st.info("📋 Ordem atual de exportação:")
         st.code(", ".join(st.session_state.ordem_colunas))
+
+        ordem_final = st.session_state.ordem_colunas
 
         # =============================================
         # 🧾 GERAÇÃO DO CSV FINAL
         # =============================================
-        ordem_final = st.session_state.ordem_colunas
-
-        # Cria coluna numérica auxiliar
         df["valor_num"] = df["valor"].astype(float)
 
-        # Formata apenas para o CSV (sem R$, com vírgula decimal e ponto milhar)
         df_csv = df.copy()
         df_csv["valor"] = df_csv["valor_num"].apply(
             lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
         )
         df_csv = df_csv.drop(columns=["valor_num"])
 
-        # Aplica a ordem de colunas definida
+        # Aplica a ordem final
         df_csv = df_csv[ordem_final]
+
+        # Visualização prévia
+        st.subheader("👀 Prévia da Tabela Reordenada")
+        st.dataframe(df_csv.head(20), use_container_width=True)
 
         # Gera CSV com separador ;
         csv_buffer = io.StringIO()
