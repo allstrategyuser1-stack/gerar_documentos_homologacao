@@ -303,18 +303,17 @@ elif step == 6:
     st.markdown("### 💾 Gerar CSV com dados")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
 
-    # --- Botões de navegação (somente voltar aqui) ---
-    col1, _ = st.columns([1, 1])
+    # --- Botões de navegação (voltar e gerar registros lado a lado) ---
+    col1, col2, _ = st.columns([1, 1, 2])
     with col1:
         st.button("⬅ Voltar", on_click=voltar_step, key="voltar_final")
-
-    # --- Geração de registros ---
-    if st.button("Gerar Registros"):
-        df = gerar_registros_csv(num_registros)
-        st.session_state.registros_gerados = df
-        st.session_state.csv_gerado = True
-        st.session_state.colunas_temp = list(df.columns)
-        st.session_state.ordem_colunas = list(df.columns)
+    with col2:
+        if st.button("🚀 Gerar Registros"):
+            df = gerar_registros_csv(num_registros)
+            st.session_state.registros_gerados = df
+            st.session_state.csv_gerado = True
+            st.session_state.colunas_temp = list(df.columns)
+            st.session_state.ordem_colunas = list(df.columns)
 
     # --- Exibição dos resultados ---
     if st.session_state.csv_gerado:
@@ -337,6 +336,7 @@ elif step == 6:
 
         with st.expander("🔧 Clique para reordenar colunas", expanded=True):
             st.write("Arraste as colunas para definir a ordem desejada:")
+
             nova_ordem = sort_items(
                 items=st.session_state.colunas_temp,
                 direction="vertical",
@@ -347,10 +347,17 @@ elif step == 6:
             if nova_ordem and isinstance(nova_ordem, list):
                 st.session_state.colunas_temp = nova_ordem
 
-            # Botão para confirmar
-            if st.button("💾 Atualizar ordem"):
-                st.session_state.ordem_colunas = st.session_state.colunas_temp.copy()
-                st.success("✅ Nova ordem de colunas atualizada!")
+            # --- Botões lado a lado dentro do expander ---
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                if st.button("💾 Salvar nova ordem de colunas"):
+                    st.session_state.ordem_colunas = st.session_state.colunas_temp.copy()
+                    st.success("✅ Nova ordem salva com sucesso!")
+            with c2:
+                if st.button("🔄 Resetar ordem padrão"):
+                    st.session_state.colunas_temp = colunas_disponiveis.copy()
+                    st.session_state.ordem_colunas = colunas_disponiveis.copy()
+                    st.info("🔁 Ordem de colunas resetada para o padrão.")
 
         # Exibe a ordem salva
         st.info("📋 Ordem atual de exportação:")
@@ -368,8 +375,6 @@ elif step == 6:
             lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
         )
         df_csv = df_csv.drop(columns=["valor_num"])
-
-        # Aplica a ordem final
         df_csv = df_csv[ordem_final]
 
         # Visualização prévia
@@ -380,12 +385,17 @@ elif step == 6:
         csv_buffer = io.StringIO()
         df_csv.to_csv(csv_buffer, index=False, sep=";", encoding="utf-8-sig")
 
-        st.download_button(
-            "📥 Download CSV",
-            data=csv_buffer.getvalue(),
-            file_name="documentos.csv",
-            mime="text/csv"
-        )
+        # --- Botões de download e voltar lado a lado ---
+        b1, b2, _ = st.columns([1, 1, 2])
+        with b1:
+            st.download_button(
+                "📥 Download CSV",
+                data=csv_buffer.getvalue(),
+                file_name="documentos.csv",
+                mime="text/csv"
+            )
+        with b2:
+            st.button("⬅ Voltar", on_click=voltar_step, key="voltar_download")
 
         # =============================================
         # 📊 RESUMO
