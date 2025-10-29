@@ -303,7 +303,7 @@ elif step == 6:
     st.markdown("### 💾 Gerar CSV com dados")
     num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
 
-    # --- Botões de navegação ---
+    # --- Botões de navegação (somente voltar aqui) ---
     col1, _ = st.columns([1, 1])
     with col1:
         st.button("⬅ Voltar", on_click=voltar_step, key="voltar_final")
@@ -314,48 +314,59 @@ elif step == 6:
         st.session_state.registros_gerados = df
         st.session_state.csv_gerado = True
 
-    # --- Personalização e download do CSV ---
-    if st.session_state.csv_gerado and "registros_gerados" in st.session_state:
+    # --- Exibição dos resultados ---
+    if st.session_state.csv_gerado:
         df = st.session_state.registros_gerados.copy()
 
-        st.markdown("#### ✏️ Personalizar ordem das colunas do CSV (arraste para reordenar)")
-
-        # Lista padrão de colunas
-        colunas_disponiveis = list(df.columns)
-
-        # Inicializa a ordem no session_state se ainda não existir
-        if "ordem_colunas" not in st.session_state:
-            st.session_state.ordem_colunas = colunas_disponiveis
-
-        # Importa componente drag & drop
+        # =============================================
+        # 🧩 BLOCO DE REORDENAÇÃO DE COLUNAS
+        # =============================================
         from streamlit_sortables import sort_items
 
-        # Permite arrastar colunas para definir ordem
-        ordem_atual = sort_items(st.session_state.ordem_colunas)
+        st.markdown("### 🧩 Reordenar colunas do CSV final")
 
-        # Atualiza session_state se houve mudança
-        if ordem_atual != st.session_state.ordem_colunas:
-            st.session_state.ordem_colunas = ordem_atual
-            st.success("Ordem das colunas atualizada!")
+        colunas_disponiveis = list(df.columns)
 
-        # Reordena o DataFrame
-        df = df[st.session_state.ordem_colunas]
+        # Inicializa variáveis de estado
+        if "colunas_temp" not in st.session_state:
+            st.session_state.colunas_temp = colunas_disponiveis.copy()
+        if "ordem_colunas" not in st.session_state:
+            st.session_state.ordem_colunas = colunas_disponiveis.copy()
 
-        # Cria coluna auxiliar para valores numéricos
+        # Interface de reordenação (sem aplicar ainda)
+        with st.expander("🔧 Clique para reordenar colunas", expanded=False):
+            nova_ordem = sort_items(st.session_state.colunas_temp, direction="vertical")
+            st.session_state.colunas_temp = nova_ordem
+
+            if st.button("💾 Salvar nova ordem de colunas"):
+                st.session_state.ordem_colunas = st.session_state.colunas_temp.copy()
+                st.success("✅ Nova ordem de colunas salva com sucesso!")
+
+        st.info("📋 Ordem atual de exportação:")
+        st.code(", ".join(st.session_state.ordem_colunas))
+
+        # =============================================
+        # 🧾 GERAÇÃO DO CSV FINAL
+        # =============================================
+        ordem_final = st.session_state.ordem_colunas
+
+        # Cria coluna numérica auxiliar
         df["valor_num"] = df["valor"].astype(float)
 
-        # Formata a coluna valor para CSV
+        # Formata apenas para o CSV (sem R$, com vírgula decimal e ponto milhar)
         df_csv = df.copy()
         df_csv["valor"] = df_csv["valor_num"].apply(
             lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
         )
         df_csv = df_csv.drop(columns=["valor_num"])
 
+        # Aplica a ordem de colunas definida
+        df_csv = df_csv[ordem_final]
+
         # Gera CSV com separador ;
         csv_buffer = io.StringIO()
         df_csv.to_csv(csv_buffer, index=False, sep=";", encoding="utf-8-sig")
 
-        # Botão de download
         st.download_button(
             "📥 Download CSV",
             data=csv_buffer.getvalue(),
@@ -363,15 +374,17 @@ elif step == 6:
             mime="text/csv"
         )
 
-        # --- Resumo dos registros ---
+        # =============================================
+        # 📊 RESUMO
+        # =============================================
         st.subheader("📊 Resumo de Registros")
         entradas = df[df["natureza"] == "E"]
         saidas = df[df["natureza"] == "S"]
 
-        c1, c2 = st.columns(2)
-        with c1:
+        col1, col2 = st.columns(2)
+        with col1:
             st.metric("Entradas", entradas.shape[0])
             st.metric("Valor total Entradas", formatar_brl(entradas["valor"].sum()))
-        with c2:
+        with col2:
             st.metric("Saídas", saidas.shape[0])
             st.metric("Valor total Saídas", formatar_brl(saidas["valor"].sum()))
