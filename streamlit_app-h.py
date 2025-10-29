@@ -318,14 +318,6 @@ elif step == 6:
     # --- Exibição dos resultados ---
     if st.session_state.csv_gerado:
         df = st.session_state.registros_gerados.copy()
-
-        # =============================================
-        # 🧩 BLOCO DE REORDENAÇÃO DE COLUNAS
-        # =============================================
-        from streamlit_sortables import sort_items
-
-        st.markdown("### 🧩 Reordenar colunas do CSV final")
-
         colunas_disponiveis = list(map(str, df.columns))  # garante strings
 
         # Inicializa variáveis de estado
@@ -334,42 +326,43 @@ elif step == 6:
         if "ordem_colunas" not in st.session_state or not st.session_state.ordem_colunas:
             st.session_state.ordem_colunas = colunas_disponiveis.copy()
 
-        with st.expander("🔧 Clique para reordenar colunas", expanded=True):
+        st.markdown("### 🧩 Reordenar colunas do CSV final")
+
+        # Caixa principal
+        with st.container():
             st.write("Arraste as colunas para definir a ordem desejada:")
 
+            # Lista ordenável
+            from streamlit_sortables import sort_items
             nova_ordem = sort_items(
                 items=st.session_state.colunas_temp,
                 direction="vertical",
                 key="sort_colunas"
             )
-
-            # Atualiza ordem temporária
             if nova_ordem and isinstance(nova_ordem, list):
                 st.session_state.colunas_temp = nova_ordem
 
-            # --- Botões lado a lado dentro do expander ---
+            # Botões lado a lado
             c1, c2 = st.columns([1, 1])
             with c1:
-                if st.button("💾 Salvar nova ordem de colunas"):
+                if st.button("💾 Atualizar ordem"):
                     st.session_state.ordem_colunas = st.session_state.colunas_temp.copy()
-                    st.success("✅ Nova ordem salva com sucesso!")
+                    st.success("✅ Ordem atualizada!")
             with c2:
-                if st.button("🔄 Resetar ordem padrão"):
+                if st.button("🔄 Resetar ordem"):
                     st.session_state.colunas_temp = colunas_disponiveis.copy()
                     st.session_state.ordem_colunas = colunas_disponiveis.copy()
-                    st.info("🔁 Ordem de colunas resetada para o padrão.")
+                    st.info("🔁 Ordem resetada para padrão.")
 
-        # Exibe a ordem salva
         st.info("📋 Ordem atual de exportação:")
         st.code(", ".join(st.session_state.ordem_colunas))
 
         ordem_final = st.session_state.ordem_colunas
 
         # =============================================
-        # 🧾 GERAÇÃO DO CSV FINAL
+        # Geração do CSV
         # =============================================
         df["valor_num"] = df["valor"].astype(float)
-
         df_csv = df.copy()
         df_csv["valor"] = df_csv["valor_num"].apply(
             lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
@@ -378,28 +371,22 @@ elif step == 6:
         df_csv = df_csv[ordem_final]
 
         # Visualização prévia
-        st.subheader("👀 Prévia da Tabela Reordenada")
-        st.dataframe(df_csv.head(20), use_container_width=True)
+        st.subheader("👀 Prévia da tabela reordenada")
+        st.dataframe(df_csv.head(2), use_container_width=True)
 
-        # Gera CSV com separador ;
-        csv_buffer = io.StringIO()
-        df_csv.to_csv(csv_buffer, index=False, sep=";", encoding="utf-8-sig")
-
-        # --- Botões de download e voltar lado a lado ---
+        # Botões de download e voltar lado a lado
         b1, b2, _ = st.columns([1, 1, 2])
         with b1:
             st.download_button(
                 "📥 Download CSV",
-                data=csv_buffer.getvalue(),
+                data=df_csv.to_csv(index=False, sep=";", encoding="utf-8-sig"),
                 file_name="documentos.csv",
                 mime="text/csv"
             )
         with b2:
             st.button("⬅ Voltar", on_click=voltar_step, key="voltar_download")
 
-        # =============================================
-        # 📊 RESUMO
-        # =============================================
+        # Resumo
         st.subheader("📊 Resumo de Registros")
         entradas = df[df["natureza"] == "E"]
         saidas = df[df["natureza"] == "S"]
