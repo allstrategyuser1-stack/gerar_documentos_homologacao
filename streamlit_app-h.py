@@ -299,7 +299,7 @@ elif step == 6:
             st.session_state.colunas_temp = list(df.columns)
             st.session_state.ordem_colunas = list(df.columns)
 
-   # --- Exibição dos resultados ---
+    # --- Exibição dos resultados ---
     if st.session_state.csv_gerado:
         df = st.session_state.registros_gerados.copy()
         colunas_disponiveis = list(map(str, df.columns))
