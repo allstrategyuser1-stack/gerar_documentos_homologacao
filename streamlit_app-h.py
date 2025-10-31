@@ -177,7 +177,7 @@ def gerar_registros_csv(n):
     if st.session_state.lista_tipos:
         tipo_docs = [random.choice(st.session_state.lista_tipos) for _ in range(n)]
     else:
-        tipo_docs = [""] * n  # coluna vazia se lista vazia
+        tipo_docs = [""] * n  # Se lista vazia, coluna vem vazia
 
     # Histórico ajustado para não exibir tipo_doc vazio
     historicos = []
@@ -198,7 +198,7 @@ def gerar_registros_csv(n):
         "unidade": [escolha(st.session_state.lista_unidades) for _ in range(n)],
         "centro_custo": [escolha_segura(st.session_state.lista_cc) for _ in range(n)],
         "tesouraria": [escolha(st.session_state.lista_tesouraria) for _ in range(n)],
-        "tipo_doc": tipo_docs,  # <-- já está vazia se lista vazia
+        "tipo_doc": tipo_docs,  # <-- agora vazia se o usuário não preencheu
         "classificacao": classificacao,
         "projeto": "",
         "prev_s_doc": "N",
@@ -312,7 +312,13 @@ elif step == 4:
 
 # ------------------ STEP 5 ------------------
 elif step == 5:
-    atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
+    # Atualiza lista de tipos de documento
+    preenchido = atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
+    
+    # Se o usuário apagou todos os tipos, força lista vazia
+    if not preenchido:
+        st.session_state.lista_tipos = []
+    
     botoes_step(True, "Próximo: Gerar CSV ➡")
 
 # ------------------ STEP 6 ------------------
