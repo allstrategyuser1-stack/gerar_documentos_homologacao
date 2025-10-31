@@ -220,6 +220,7 @@ def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
 # -------------------------------------------------
 if st.button("🔄 Limpar dados"):
     for k in list(st.session_state.keys()):
+    if not k.startswith("_"):
         del st.session_state[k]
     st.rerun()
 
