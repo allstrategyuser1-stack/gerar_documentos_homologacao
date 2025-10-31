@@ -314,4 +314,98 @@ elif step == 6:
             st.session_state.ordem_colunas = list(df.columns)
 
     # --- Exibição dos resultados ---
-    if st.session_state.csv_ger
+    if st.session_state.csv_gerado:
+        df = st.session_state.registros_gerados.copy()
+        colunas_disponiveis = list(map(str, df.columns))
+
+        # Inicializa estado da lista temporária
+        if "colunas_temp" not in st.session_state or not st.session_state.colunas_temp:
+            st.session_state.colunas_temp = colunas_disponiveis.copy()
+        if "ordem_colunas" not in st.session_state or not st.session_state.ordem_colunas:
+            st.session_state.ordem_colunas = colunas_disponiveis.copy()
+
+        # --- Botão para mostrar/ocultar reordenação ---
+        if "mostrar_reordenacao" not in st.session_state:
+            st.session_state.mostrar_reordenacao = False
+
+        if st.button("🧩 Reordenar Colunas"):
+            st.session_state.mostrar_reordenacao = not st.session_state.mostrar_reordenacao
+
+        if st.session_state.mostrar_reordenacao:
+            st.markdown("### Reordene as colunas do CSV final")
+
+            from streamlit_sortables import sort_items
+
+            # Caixa com borda e fundo cinza
+            with st.container():
+                st.markdown(
+                    "<div style='padding:10px; border:1px solid #ccc; background-color:#f5f5f5; border-radius:5px;'>"
+                    "<p>Arraste as colunas para definir a ordem desejada:</p></div>",
+                    unsafe_allow_html=True
+                )
+
+                # Lista horizontal para reordenação
+                nova_ordem = sort_items(
+                    items=st.session_state.colunas_temp,
+                    direction="horizontal",
+                    key="sort_colunas_horizontal"
+                )
+
+                if nova_ordem and isinstance(nova_ordem, list):
+                    st.session_state.colunas_temp = nova_ordem
+
+                # Botões Salvar / Resetar lado a lado
+                c1, c2 = st.columns([1, 1])
+                with c1:
+                    if st.button("💾 Salvar nova ordem"):
+                        st.session_state.ordem_colunas = st.session_state.colunas_temp.copy()
+                        st.success("✅ Nova ordem salva!")
+                with c2:
+                    if st.button("🔄 Resetar ordem"):
+                        st.session_state.colunas_temp = colunas_disponiveis.copy()
+                        st.session_state.ordem_colunas = colunas_disponiveis.copy()
+                        st.info("🔁 Ordem resetada para padrão.")
+
+        st.info("📋 Ordem atual de exportação:")
+        st.code(", ".join(st.session_state.ordem_colunas))
+        ordem_final = st.session_state.ordem_colunas
+
+        # =============================================
+        # Geração do CSV
+        # =============================================
+        df["valor_num"] = df["valor"].astype(float)
+        df_csv = df.copy()
+        df_csv["valor"] = df_csv["valor_num"].apply(
+            lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
+        )
+        df_csv = df_csv.drop(columns=["valor_num"])
+        df_csv = df_csv[ordem_final]
+
+        # Visualização prévia (apenas 2 registros)
+        st.subheader("👀 Prévia da Tabela Reordenada")
+        st.dataframe(df_csv.head(2), use_container_width=True)
+
+        # Botões Download / Voltar lado a lado
+        b1, b2, _ = st.columns([1, 1, 2])
+        with b1:
+            st.download_button(
+                "📥 Download CSV",
+                data=df_csv.to_csv(index=False, sep=";", encoding="utf-8-sig"),
+                file_name="documentos.csv",
+                mime="text/csv"
+            )
+        with b2:
+            st.button("⬅ Voltar", on_click=voltar_step, key="voltar_download")
+
+        # Resumo
+        st.subheader("📊 Resumo de Registros")
+        entradas = df[df["natureza"] == "E"]
+        saidas = df[df["natureza"] == "S"]
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Entradas", entradas.shape[0])
+            st.metric("Valor total Entradas", formatar_brl(entradas["valor"].sum()))
+        with col2:
+            st.metric("Saídas", saidas.shape[0])
+            st.metric("Valor total Saídas", formatar_brl(saidas["valor"].sum()))
