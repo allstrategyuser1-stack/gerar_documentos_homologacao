@@ -166,13 +166,20 @@ def gerar_registros_csv(n):
     # --- Gera lista de tipos de documento de forma consistente ---
     tipo_docs = [escolha_segura(st.session_state.lista_tipos) for _ in range(n)]
 
+    # --- Gera histórico, removendo referência a tipo_doc vazio ---
     historicos = []
     for i in range(n):
         tipo = tipos[i]
         desc = classificacao[i]
         unidade = escolha(st.session_state.lista_unidades)
+        tipo_doc_atual = tipo_docs[i]
         modelo = random.choice(frases_entrada if tipo == "E" else frases_saida)
-        historicos.append(modelo.format(unid=unidade, tipo_doc=tipo_docs[i], desc=desc))
+
+        if not tipo_doc_atual:
+            # Remove marcadores de tipo_doc vazios
+            modelo = modelo.replace("{tipo_doc} ", "").replace("({tipo_doc})", "").replace("{tipo_doc}", "")
+
+        historicos.append(modelo.format(unid=unidade, tipo_doc=tipo_doc_atual, desc=desc))
 
     registros = pd.DataFrame({
         "documento": range(1, n + 1),
