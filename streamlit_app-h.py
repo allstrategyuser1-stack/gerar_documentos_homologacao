@@ -381,12 +381,20 @@ elif step == 6:
         st.code(", ".join(st.session_state.ordem_colunas))
         ordem_final = st.session_state.ordem_colunas
 
+        # --- Ajustes para o CSV ---
         df["valor_num"] = df["valor"].astype(float)
         df_csv = df.copy()
         df_csv["valor"] = df_csv["valor_num"].apply(
             lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
         )
         df_csv = df_csv.drop(columns=["valor_num"])
+
+        # Garante que a coluna tipo_doc exista e esteja vazia se necessário
+        if "tipo_doc" not in df_csv.columns:
+            df_csv["tipo_doc"] = ""
+        df_csv["tipo_doc"] = df_csv["tipo_doc"].fillna("")
+
+        # Reordena colunas
         df_csv = df_csv[ordem_final]
 
         st.subheader("👀 Prévia da Tabela Reordenada")
