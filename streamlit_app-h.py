@@ -142,11 +142,9 @@ def gerar_registros_csv(n):
     dt_inclusao_str = [d.strftime("%d/%m/%Y") for d in dt_inclusao]
 
     def escolha(lista):
-        """Função original para listas que sempre têm valores"""
         return random.choice(lista) if lista else ""
 
     def escolha_segura(lista):
-        """Retorna um valor aleatório da lista ou '' se a lista estiver vazia"""
         return random.choice(lista) if lista else ""
 
     classificacao = [
@@ -165,23 +163,25 @@ def gerar_registros_csv(n):
         "Documento {tipo_doc} código {desc} processado como pagamento pela unidade {unid}. Registro gerado automaticamente."
     ]
 
+    # --- Gera lista de tipos de documento de forma consistente ---
+    tipo_docs = [escolha_segura(st.session_state.lista_tipos) for _ in range(n)]
+
     historicos = []
     for i in range(n):
         tipo = tipos[i]
         desc = classificacao[i]
-        tipo_doc = escolha_segura(st.session_state.lista_tipos)
         unidade = escolha(st.session_state.lista_unidades)
         modelo = random.choice(frases_entrada if tipo == "E" else frases_saida)
-        historicos.append(modelo.format(unid=unidade, tipo_doc=tipo_doc, desc=desc))
+        historicos.append(modelo.format(unid=unidade, tipo_doc=tipo_docs[i], desc=desc))
 
     registros = pd.DataFrame({
         "documento": range(1, n + 1),
         "natureza": tipos,
         "valor": valores,
         "unidade": [escolha(st.session_state.lista_unidades) for _ in range(n)],
-        "centro_custo": [escolha_segura(st.session_state.lista_cc) for _ in range(n)],  # ALTERADO
+        "centro_custo": [escolha_segura(st.session_state.lista_cc) for _ in range(n)],
         "tesouraria": [escolha(st.session_state.lista_tesouraria) for _ in range(n)],
-        "tipo_doc": [escolha_segura(st.session_state.lista_tipos) for _ in range(n)],      # ALTERADO
+        "tipo_doc": tipo_docs,
         "classificacao": classificacao,
         "projeto": "",
         "prev_s_doc": "N",
@@ -194,7 +194,7 @@ def gerar_registros_csv(n):
         "erp_origem": "",
         "erp_uuid": "",
         "historico": historicos,
-        "cliente_fornecedor": [f"{'C' if t == 'E' else 'F'}{random.randint(1, 50)}" for t in tipos],
+        "cliente_fornecedor": [f"{'C' if t == "E" else 'F'}{random.randint(1, 50)}" for t in tipos],
         "doc_edit": "N",
     })
     return registros
