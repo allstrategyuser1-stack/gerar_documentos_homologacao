@@ -129,7 +129,7 @@ def gerar_registros_csv(n):
     # --- pagamento (respeitando regras)
     def pagamento_aleatorio(venc, emissao, inclusao):
         if random.random() < 0.5:
-            p = venc + timedelta(days=random.randint(-5, 5))  # pode ser antes (antecipação)
+            p = venc + timedelta(days=random.randint(-5, 5))
             hoje = datetime.today().date()
             p = min(p, hoje)
             p = max(p, emissao, inclusao, data_inicio)
@@ -137,8 +137,6 @@ def gerar_registros_csv(n):
         return None
 
     pagamentos = [pagamento_aleatorio(v, dt_emissao[i], dt_inclusao[i]) for i, v in enumerate(vencimentos)]
-
-    # --- vencimento também respeita as datas
     vencimentos_ajustados = [max(v, dt_emissao[i], dt_inclusao[i]) for i, v in enumerate(vencimentos)]
     dt_emissao_str = [d.strftime("%d/%m/%Y") for d in dt_emissao]
     dt_inclusao_str = [d.strftime("%d/%m/%Y") for d in dt_inclusao]
@@ -220,8 +218,8 @@ def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
 # -------------------------------------------------
 if st.button("🔄 Limpar dados"):
     for k in list(st.session_state.keys()):
-    if not k.startswith("_"):
-        del st.session_state[k]
+        if not k.startswith("_"):
+            del st.session_state[k]
     st.rerun()
 
 # -------------------------------------------------
@@ -240,6 +238,7 @@ with st.expander("ℹ️ Observações da função", expanded=False):
 step = max(0, min(st.session_state.step, 6))
 st.progress((step + 1) / 7)
 
+# ------------------ STEP 0 ------------------
 if step == 0:
     st.markdown("### 📅 Selecionar Período")
     data_inicio_str = st.text_input("Data inicial", value=st.session_state.data_inicio.strftime("%d/%m/%Y"))
@@ -261,32 +260,46 @@ if step == 0:
     elif data_fim < data_inicio:
         st.error("A data final não pode ser anterior à data inicial!")
     else:
-        st.button("Próximo: Unidades ➡", on_click=lambda: st.session_state.update({"data_inicio": data_inicio, "data_fim": data_fim}) or avancar_step())
+        st.button(
+            "Próximo: Unidades ➡",
+            on_click=lambda: st.session_state.update({"data_inicio": data_inicio, "data_fim": data_fim}) or avancar_step()
+        )
 
+# ------------------ STEP 1 ------------------
 elif step == 1:
     atualizar_lista("Unidades", st.session_state.lista_unidades, "unidades", "unidades")
     botoes_step(True, "Próximo: Classificações ➡")
 
+# ------------------ STEP 2 ------------------
 elif step == 2:
     st.markdown("<h2>Classificações financeiras</h2>", unsafe_allow_html=True)
     atualizar_lista("Entradas", st.session_state.entradas_codigos, "entrada", "entradas")
     atualizar_lista("Saídas", st.session_state.saidas_codigos, "saida", "saidas")
     botoes_step(True, "Próximo: Tesouraria ➡")
 
+# ------------------ STEP 3 ------------------
 elif step == 3:
     atualizar_lista("Tesouraria", st.session_state.lista_tesouraria, "tesouraria", "tesouraria")
     botoes_step(True, "Próximo: Centro de Custo ➡")
 
+# ------------------ STEP 4 ------------------
 elif step == 4:
     atualizar_lista("Centro de Custo", st.session_state.lista_cc, "centro_custo", "cc")
     botoes_step(True, "Próximo: Tipos de Documento ➡")
 
+# ------------------ STEP 5 ------------------
 elif step == 5:
     atualizar_lista("Tipos de Documento", st.session_state.lista_tipos, "tipos_doc", "tipos_doc")
     botoes_step(True, "Próximo: Gerar CSV ➡")
 
+# ------------------ STEP 6 ------------------
 elif step == 6:
     st.markdown("### 💾 Gerar CSV com dados")
+
+    # Exibe período selecionado
+    st.info(f"Período selecionado: {st.session_state.data_inicio.strftime('%d/%m/%Y')} "
+            f"até {st.session_state.data_fim.strftime('%d/%m/%Y')}")
+
     num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
 
     col1, col2, _ = st.columns([1, 1, 2])
@@ -301,98 +314,4 @@ elif step == 6:
             st.session_state.ordem_colunas = list(df.columns)
 
     # --- Exibição dos resultados ---
-    if st.session_state.csv_gerado:
-        df = st.session_state.registros_gerados.copy()
-        colunas_disponiveis = list(map(str, df.columns))
-
-        # Inicializa estado da lista temporária
-        if "colunas_temp" not in st.session_state or not st.session_state.colunas_temp:
-            st.session_state.colunas_temp = colunas_disponiveis.copy()
-        if "ordem_colunas" not in st.session_state or not st.session_state.ordem_colunas:
-            st.session_state.ordem_colunas = colunas_disponiveis.copy()
-
-        # --- Botão para mostrar/ocultar reordenação ---
-        if "mostrar_reordenacao" not in st.session_state:
-            st.session_state.mostrar_reordenacao = False
-
-        if st.button("🧩 Reordenar Colunas"):
-            st.session_state.mostrar_reordenacao = not st.session_state.mostrar_reordenacao
-
-        if st.session_state.mostrar_reordenacao:
-            st.markdown("### Reordene as colunas do CSV final")
-
-            from streamlit_sortables import sort_items
-
-            # Caixa com borda e fundo cinza
-            with st.container():
-                st.markdown(
-                    "<div style='padding:10px; border:1px solid #ccc; background-color:#f5f5f5; border-radius:5px;'>"
-                    "<p>Arraste as colunas para definir a ordem desejada:</p></div>",
-                    unsafe_allow_html=True
-                )
-
-                # Lista horizontal para reordenação
-                nova_ordem = sort_items(
-                    items=st.session_state.colunas_temp,
-                    direction="horizontal",
-                    key="sort_colunas_horizontal"
-                )
-
-                if nova_ordem and isinstance(nova_ordem, list):
-                    st.session_state.colunas_temp = nova_ordem
-
-                # Botões Salvar / Resetar lado a lado
-                c1, c2 = st.columns([1, 1])
-                with c1:
-                    if st.button("💾 Salvar nova ordem"):
-                        st.session_state.ordem_colunas = st.session_state.colunas_temp.copy()
-                        st.success("✅ Nova ordem salva!")
-                with c2:
-                    if st.button("🔄 Resetar ordem"):
-                        st.session_state.colunas_temp = colunas_disponiveis.copy()
-                        st.session_state.ordem_colunas = colunas_disponiveis.copy()
-                        st.info("🔁 Ordem resetada para padrão.")
-
-        st.info("📋 Ordem atual de exportação:")
-        st.code(", ".join(st.session_state.ordem_colunas))
-        ordem_final = st.session_state.ordem_colunas
-
-        # =============================================
-        # Geração do CSV
-        # =============================================
-        df["valor_num"] = df["valor"].astype(float)
-        df_csv = df.copy()
-        df_csv["valor"] = df_csv["valor_num"].apply(
-            lambda v: f"{v:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
-        )
-        df_csv = df_csv.drop(columns=["valor_num"])
-        df_csv = df_csv[ordem_final]
-
-        # Visualização prévia (apenas 2 registros)
-        st.subheader("👀 Prévia da Tabela Reordenada")
-        st.dataframe(df_csv.head(2), use_container_width=True)
-
-        # Botões Download / Voltar lado a lado
-        b1, b2, _ = st.columns([1, 1, 2])
-        with b1:
-            st.download_button(
-                "📥 Download CSV",
-                data=df_csv.to_csv(index=False, sep=";", encoding="utf-8-sig"),
-                file_name="documentos.csv",
-                mime="text/csv"
-            )
-        with b2:
-            st.button("⬅ Voltar", on_click=voltar_step, key="voltar_download")
-
-        # Resumo
-        st.subheader("📊 Resumo de Registros")
-        entradas = df[df["natureza"] == "E"]
-        saidas = df[df["natureza"] == "S"]
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Entradas", entradas.shape[0])
-            st.metric("Valor total Entradas", formatar_brl(entradas["valor"].sum()))
-        with col2:
-            st.metric("Saídas", saidas.shape[0])
-            st.metric("Valor total Saídas", formatar_brl(saidas["valor"].sum()))
+    if st.session_state.csv_ger
