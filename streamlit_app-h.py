@@ -142,6 +142,11 @@ def gerar_registros_csv(n):
     dt_inclusao_str = [d.strftime("%d/%m/%Y") for d in dt_inclusao]
 
     def escolha(lista):
+        """Função original para listas que sempre têm valores"""
+        return random.choice(lista) if lista else ""
+
+    def escolha_segura(lista):
+        """Retorna um valor aleatório da lista ou '' se a lista estiver vazia"""
         return random.choice(lista) if lista else ""
 
     classificacao = [
@@ -164,7 +169,7 @@ def gerar_registros_csv(n):
     for i in range(n):
         tipo = tipos[i]
         desc = classificacao[i]
-        tipo_doc = escolha(st.session_state.lista_tipos)
+        tipo_doc = escolha_segura(st.session_state.lista_tipos)
         unidade = escolha(st.session_state.lista_unidades)
         modelo = random.choice(frases_entrada if tipo == "E" else frases_saida)
         historicos.append(modelo.format(unid=unidade, tipo_doc=tipo_doc, desc=desc))
@@ -174,9 +179,9 @@ def gerar_registros_csv(n):
         "natureza": tipos,
         "valor": valores,
         "unidade": [escolha(st.session_state.lista_unidades) for _ in range(n)],
-        "centro_custo": [escolha(st.session_state.lista_cc) for _ in range(n)],
+        "centro_custo": [escolha_segura(st.session_state.lista_cc) for _ in range(n)],  # ALTERADO
         "tesouraria": [escolha(st.session_state.lista_tesouraria) for _ in range(n)],
-        "tipo_doc": [escolha(st.session_state.lista_tipos) for _ in range(n)],
+        "tipo_doc": [escolha_segura(st.session_state.lista_tipos) for _ in range(n)],      # ALTERADO
         "classificacao": classificacao,
         "projeto": "",
         "prev_s_doc": "N",
@@ -328,11 +333,11 @@ elif step == 6:
         if "mostrar_reordenacao" not in st.session_state:
             st.session_state.mostrar_reordenacao = False
 
-        if st.button("🧩 Reordenar Colunas"):
+        if st.button("🧩 Reordenar colunas do arquivo final"):
             st.session_state.mostrar_reordenacao = not st.session_state.mostrar_reordenacao
 
         if st.session_state.mostrar_reordenacao:
-            st.markdown("### Reordene as colunas do CSV final")
+            st.markdown("### Reordene as colunas do arquivo final")
 
             from streamlit_sortables import sort_items
 
