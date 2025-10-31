@@ -3,7 +3,6 @@ import random
 import io
 import pandas as pd
 from datetime import datetime, timedelta
-from streamlit_sortables import sort_items
 
 # -------------------------------------------------
 # ⚙️ CONFIGURAÇÃO INICIAL
@@ -25,10 +24,7 @@ DEFAULT_STATE = {
     "lista_cc": ["CC01", "CC02"],
     "lista_tipos": ["NF", "REC"],
     "registros_gerados": [],
-    "csv_gerado": False,
-    "colunas_temp": [],
-    "ordem_colunas": [],
-    "mostrar_reordenacao": False
+    "csv_gerado": False
 }
 for k, v in DEFAULT_STATE.items():
     st.session_state.setdefault(k, v)
@@ -86,8 +82,12 @@ def ler_codigos_excel(arquivo):
         st.error(f"Erro ao ler arquivo: {e}")
     return []
 
+# -------------------------------------------------
+# Função atualizar_lista corrigida
+# -------------------------------------------------
 def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
     st.markdown(f"### {nome}")
+    lista = lista_padrao.copy()
     
     col1, col2 = st.columns(2)
     with col1:
@@ -96,15 +96,23 @@ def atualizar_lista(nome, lista_padrao, tipo_arquivo, key):
     with col2:
         arquivo = st.file_uploader(f"Importar {nome}", type=["xlsx"], key=f"upload_{key}")
         if arquivo:
-            lista_padrao = ler_codigos_excel(arquivo) or lista_padrao
+            lista = ler_codigos_excel(arquivo) or lista
 
-    valor_inicial = st.session_state.get(f"lista_{key}", lista_padrao)
+    # Usa valor da sessão se já existir, senão usa lista padrão
+    valor_inicial = st.session_state.get(f"lista_{key}", lista)
+
     lista_text = st.text_area(f"{nome} (separados por vírgula)",
                               value=",".join(valor_inicial), height=60)
+
+    # Garante que lista fique vazia se o usuário apagar todo o conteúdo
     lista = [x.strip() for x in lista_text.split(",") if x.strip()]
+
     st.session_state[f"lista_{key}"] = lista
     return bool(lista)
 
+# -------------------------------------------------
+# Função para gerar registros CSV
+# -------------------------------------------------
 def gerar_registros_csv(n):
     data_inicio = st.session_state.data_inicio
     data_fim = st.session_state.data_fim
@@ -142,7 +150,10 @@ def gerar_registros_csv(n):
     dt_inclusao_str = [d.strftime("%d/%m/%Y") for d in dt_inclusao]
 
     def escolha(lista):
-        return random.choice(lista) if lista else ""
+        return random.choice(lista) if lista else None
+
+    def escolha_segura(lista):
+        return random.choice(lista) if lista else None  # <-- Retorna None se lista vazia
 
     classificacao = [
         random.choice(st.session_state.entradas_codigos if t == "E" else st.session_state.saidas_codigos)
@@ -160,10 +171,10 @@ def gerar_registros_csv(n):
         "Documento {tipo_doc} código {desc} processado como pagamento pela unidade {unid}. Registro gerado automaticamente."
     ]
 
-    # --- Correção: Centro de custo e tipo de documento vazios se lista vazia ---
-    centro_custos = [random.choice(st.session_state.lista_cc) for _ in range(n)] if st.session_state.lista_cc else [""]*n
-    tipo_docs = [random.choice(st.session_state.lista_tipos) for _ in range(n)] if st.session_state.lista_tipos else [""]*n
+    # Lista de tipos de documento consistente
+    tipo_docs = [escolha_segura(st.session_state.lista_tipos) for _ in range(n)]
 
+    # Histórico ajustado para não exibir tipo_doc vazio
     historicos = []
     for i in range(n):
         tipo = tipos[i]
@@ -180,9 +191,9 @@ def gerar_registros_csv(n):
         "natureza": tipos,
         "valor": valores,
         "unidade": [escolha(st.session_state.lista_unidades) for _ in range(n)],
-        "centro_custo": centro_custos,
+        "centro_custo": [escolha_segura(st.session_state.lista_cc) for _ in range(n)],
         "tesouraria": [escolha(st.session_state.lista_tesouraria) for _ in range(n)],
-        "tipo_doc": tipo_docs,
+        "tipo_doc": tipo_docs,  # <-- Agora pode conter None
         "classificacao": classificacao,
         "projeto": "",
         "prev_s_doc": "N",
@@ -201,7 +212,7 @@ def gerar_registros_csv(n):
     return registros
 
 # -------------------------------------------------
-# Funções de navegação
+# 🔄 Funções de navegação entre steps
 # -------------------------------------------------
 def avancar_step():
     st.session_state.step += 1
@@ -220,7 +231,7 @@ def botoes_step(preenchido=True, label_proximo="Próximo ➡"):
             st.button(label_proximo, on_click=avancar_step, key=f"proximo_{step}")
 
 # -------------------------------------------------
-# Botão reset global
+# Botão de reset global
 # -------------------------------------------------
 if st.button("🔄 Limpar dados"):
     for k in list(st.session_state.keys()):
@@ -239,7 +250,7 @@ with st.expander("ℹ️ Observações da função", expanded=False):
     """)
 
 # -------------------------------------------------
-# FLUXO PRINCIPAL
+# Fluxo principal
 # -------------------------------------------------
 step = max(0, min(st.session_state.step, 6))
 st.progress((step + 1) / 7)
@@ -301,8 +312,10 @@ elif step == 5:
 # ------------------ STEP 6 ------------------
 elif step == 6:
     st.markdown("### 💾 Gerar CSV com dados")
+
     st.info(f"Período selecionado: {st.session_state.data_inicio.strftime('%d/%m/%Y')} "
             f"até {st.session_state.data_fim.strftime('%d/%m/%Y')}")
+
     num_registros = st.number_input("Número de registros", min_value=10, max_value=10000, value=100)
 
     col1, col2, _ = st.columns([1, 1, 2])
@@ -316,33 +329,40 @@ elif step == 6:
             st.session_state.colunas_temp = list(df.columns)
             st.session_state.ordem_colunas = list(df.columns)
 
+    # Exibição dos resultados
     if st.session_state.csv_gerado:
         df = st.session_state.registros_gerados.copy()
-        colunas_disponiveis = list(df.columns)
+        colunas_disponiveis = list(map(str, df.columns))
 
-        # Inicializa estado da lista temporária
-        if not st.session_state.colunas_temp:
+        if "colunas_temp" not in st.session_state or not st.session_state.colunas_temp:
             st.session_state.colunas_temp = colunas_disponiveis.copy()
-        if not st.session_state.ordem_colunas:
+        if "ordem_colunas" not in st.session_state or not st.session_state.ordem_colunas:
             st.session_state.ordem_colunas = colunas_disponiveis.copy()
 
-        # Botão reordenação
+        if "mostrar_reordenacao" not in st.session_state:
+            st.session_state.mostrar_reordenacao = False
+
         if st.button("🧩 Reordenar colunas do arquivo final"):
             st.session_state.mostrar_reordenacao = not st.session_state.mostrar_reordenacao
 
         if st.session_state.mostrar_reordenacao:
             st.markdown("### Reordene as colunas do arquivo final")
+
+            from streamlit_sortables import sort_items
+
             with st.container():
                 st.markdown(
                     "<div style='padding:10px; border:1px solid #ccc; background-color:#f5f5f5; border-radius:5px;'>"
                     "<p>Arraste as colunas para definir a ordem desejada:</p></div>",
                     unsafe_allow_html=True
                 )
+
                 nova_ordem = sort_items(
                     items=st.session_state.colunas_temp,
                     direction="horizontal",
                     key="sort_colunas_horizontal"
                 )
+
                 if nova_ordem and isinstance(nova_ordem, list):
                     st.session_state.colunas_temp = nova_ordem
 
@@ -361,7 +381,6 @@ elif step == 6:
         st.code(", ".join(st.session_state.ordem_colunas))
         ordem_final = st.session_state.ordem_colunas
 
-        # Geração CSV
         df["valor_num"] = df["valor"].astype(float)
         df_csv = df.copy()
         df_csv["valor"] = df_csv["valor_num"].apply(
@@ -370,7 +389,6 @@ elif step == 6:
         df_csv = df_csv.drop(columns=["valor_num"])
         df_csv = df_csv[ordem_final]
 
-        # Prévia
         st.subheader("👀 Prévia da Tabela Reordenada")
         st.dataframe(df_csv.head(2), use_container_width=True)
 
@@ -385,10 +403,10 @@ elif step == 6:
         with b2:
             st.button("⬅ Voltar", on_click=voltar_step, key="voltar_download")
 
-        # Resumo
         st.subheader("📊 Resumo de Registros")
         entradas = df[df["natureza"] == "E"]
         saidas = df[df["natureza"] == "S"]
+
         col1, col2 = st.columns(2)
         with col1:
             st.metric("Entradas", entradas.shape[0])
