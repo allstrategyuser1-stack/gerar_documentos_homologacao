@@ -153,7 +153,7 @@ def gerar_registros_csv(n):
         return random.choice(lista) if lista else None
 
     def escolha_segura(lista):
-        return random.choice(lista) if lista else None  # <-- Retorna None se lista vazia
+        return random.choice(lista) if lista else None
 
     classificacao = [
         random.choice(st.session_state.entradas_codigos if t == "E" else st.session_state.saidas_codigos)
@@ -171,8 +171,13 @@ def gerar_registros_csv(n):
         "Documento {tipo_doc} código {desc} processado como pagamento pela unidade {unid}. Registro gerado automaticamente."
     ]
 
-    # Lista de tipos de documento consistente
-    tipo_docs = [escolha_segura(st.session_state.lista_tipos) for _ in range(n)]
+    # -------------------------------------------------
+    # Ajuste principal: se a lista de tipos estiver vazia, preenche com ""
+    # -------------------------------------------------
+    if st.session_state.lista_tipos:
+        tipo_docs = [random.choice(st.session_state.lista_tipos) for _ in range(n)]
+    else:
+        tipo_docs = [""] * n  # coluna vazia se lista vazia
 
     # Histórico ajustado para não exibir tipo_doc vazio
     historicos = []
@@ -193,7 +198,7 @@ def gerar_registros_csv(n):
         "unidade": [escolha(st.session_state.lista_unidades) for _ in range(n)],
         "centro_custo": [escolha_segura(st.session_state.lista_cc) for _ in range(n)],
         "tesouraria": [escolha(st.session_state.lista_tesouraria) for _ in range(n)],
-        "tipo_doc": tipo_docs,  # <-- Agora pode conter None
+        "tipo_doc": tipo_docs,  # <-- já está vazia se lista vazia
         "classificacao": classificacao,
         "projeto": "",
         "prev_s_doc": "N",
@@ -209,6 +214,7 @@ def gerar_registros_csv(n):
         "cliente_fornecedor": [f"{'C' if t == 'E' else 'F'}{random.randint(1, 50)}" for t in tipos],
         "doc_edit": "N",
     })
+
     return registros
 
 # -------------------------------------------------
